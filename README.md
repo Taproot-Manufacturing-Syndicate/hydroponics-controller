@@ -35,3 +35,26 @@ nutrient solution just drains down to the reservoir.
 
 * There is a large enough volume of nutrient solution in the system that
   with the plant tray full, the pump in the tank is still submerged.
+
+
+# System variables
+
+The hydroponic system is characterized by several environmental variables
+and controls.
+
+Plant environment:
+* light level
+* temperature
+* air humidity
+* carbon dioxide level
+
+Hydroponic system main controls:
+* the main nutrient pump
+* air circulation
+* air and/or nutrient solution heater/cooler
+
+Nutrient solution quality:
+* concentration of nutrients
+* pH
+* dissolved oxygen
+* turbidity (to detect algae growth and other dysfunction)
