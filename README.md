@@ -139,16 +139,30 @@ obviously.
 ## Nutrient solution controller
 
 This is a computer that monitors and controls a couple of variables
-relating to the nutrient solution, e.g.:
+relating to the nutrient solution.  It reports periodic telemetry,
+and any events that need human attention.
+
+Nutrient solution sensors include: 
 
 * pH
 
-* nutrient concentration (as estimated by EC/TDS)
+    * PH-4502C sensor + probe
+      <https://cimpleo.com/blog/arduino-ph-meter-using-ph-4502c/>
+      $21 <https://www.ebay.com/itm/354713592722>
 
-It reports periodic telemetry, and any events that need human attention.
+    * Atlas Scientific "Surveyor" analog pH kit: $69,
+      produces a voltage 0.265-2.745 for pH 14 to
+      0. <https://atlas-scientific.com/kits/surveyor-analog-ph-kit>
 
-It uses volumetric pumps driven by stepper motors to add control fluids
-to the nutrient solution tank.  The control fluids are:
+* nutrient concentration (as estimated by Electrical Conductivity or
+  Total Dissolved Solids)
+
+    * DFRobot TDS Sensor: $12
+      <https://wiki.dfrobot.com/Gravity__Analog_TDS_Sensor___Meter_For_Arduino_SKU__SEN0244>
+
+The nutrient solution controller uses volumetric pumps driven by stepper
+motors to add control fluids to the nutrient solution tank.  The control
+fluids are:
 
 * pH up <https://hydrobuilder.com/microbe-life-hydroponics-ph-up.html>
 
