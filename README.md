@@ -5,8 +5,7 @@ This project implements an ebb and flow hydroponic system.
 
 # System Architecture
 
-A tank holds the nutrient solution.  The tank is opaque to discourage
-algae growth, and made of a food safe material.
+A tank holds the nutrient solution.
 
 A submersible pump in the tank lifts the nutrient solution to the
 plant tray.
@@ -58,3 +57,125 @@ Nutrient solution quality:
 * pH
 * dissolved oxygen
 * turbidity (to detect algae growth and other dysfunction)
+
+
+# Bill of Materials
+
+
+## Nutrient solution tank
+
+Opaque, with lid, to reduce the light that encourages algae growth.
+
+Made of a food safe material: high-density polyethylene (HDPE),
+low-density polyethylene (LDPE), polypropylene (PP), or polycarbonate
+(PC).  No ABS.  Sometimes the manufacturer will report what material
+a tank is made from, sometimes you can look for the recycling sign: "1
+PETE" (polyethylene terephthalate), "2 HDPE" (high density polyethylene),
+"4 LDPE" (low density polyethylene), and "5 PP" (polypropylene) are all
+good options.
+
+A food safe 5 gallon bucket would work well.  You can find
+this at home brewing stores, or at Lowe's: $7, plus $3 for the lid:
+<https://www.lowes.com/pd/Leaktite-5-gal-70mil-Food-Safe-White-Bucket/5013212247>
+HDPE, says the manufacturer:
+<https://www.leaktite.com/products/5-gal-foodsafe-70-mil-white>
+
+
+## Main pump
+
+The main pump sits submerged in the nutrient solution tank.
+
+One option is the Active Aqua 250 GPH, $29.  I like
+that they publish GPH vs lift height curves.
+<https://hydrobuilder.com/active-aqua-submersible-water-pumps.html>
+
+The pump is powered by AC via a computer controlled power outlet.
+
+
+## Plant tray
+
+This is an open-topped tray that the plants sit in.
+
+Made of food safe materials (see notes in the Nutrient Solution Tank
+section).
+
+Again a food safe 5 gallon bucket can work, with the walls cut to the
+proper height.
+
+There are also trays specifically made for hydroponics, but food safe
+ones can be expensive.
+
+
+## Plant tray fixtures
+
+The plant tray has two or three holes in the bottom:
+
+* A slow drain (slower than the pump) at the lowest point on the floor.
+  This may not be necessary, if the pump can act as a drain when the
+  power is turned off.
+
+* A fast drain (faster than the pump) with a riser on the intake.
+  This provides overflow prevention (unless it clogs).
+
+* A faucet or spigot, fed by the main pump.
+
+Options:
+
+* <https://hydrobuilder.com/grow1-ebb-flow-kit.html>
+
+* <https://hydrobuilder.com/active-aqua-fill-drain-combo-kit.html>
+
+
+## Tubing
+
+We'll use tubing to connect the pump to the fill fixture of the plant
+tray, and connect the fast overflow drain fixture back to the nutrient
+solution tank.
+
+The dimensions of the tubing have to match the pump and the fixtures
+obviously.
+
+
+## Nutrient solution controller
+
+This is a computer that monitors and controls a couple of variables
+relating to the nutrient solution, e.g.:
+
+* pH
+
+* nutrient concentration (as estimated by EC/TDS)
+
+It reports periodic telemetry, and any events that need human attention.
+
+It uses volumetric pumps driven by stepper motors to add control fluids
+to the nutrient solution tank.  The control fluids are:
+
+* pH up <https://hydrobuilder.com/microbe-life-hydroponics-ph-up.html>
+
+* pH down <https://hydrobuilder.com/microbe-life-hydroponics-ph-down.html>
+
+* nutrient concentrate
+
+
+## Lights
+
+??
+
+The lights are powered by AC (like the pump).
+
+
+## Computer controlled power outlets
+
+These are AC power outlets that can be controlled from a computer.
+
+Ideally should report current draw for diagnostics.
+
+A good inexpensive option here is the [Sonoff S31 with Tasmota
+firmware](https://tasmota.github.io/docs/devices/Sonoff-S31/).
+
+We need one for the pump and one for the lights.
+
+
+## Grow controller
+
+This is a computer that sequences the main pump and lights.
