@@ -142,7 +142,7 @@ This is a computer that monitors and controls a couple of variables
 relating to the nutrient solution.  It reports periodic telemetry,
 and any events that need human attention.
 
-Nutrient solution sensors include: 
+Nutrient solution sensors include:
 
 * pH
 
@@ -169,6 +169,29 @@ fluids are:
 * pH down <https://hydrobuilder.com/microbe-life-hydroponics-ph-down.html>
 
 * nutrient concentrate
+
+
+## Volumetric pump
+
+Here's a mostly-printed option for the volumetric/peristaltic pump:
+
+* <https://github.com/DerSchultze/Peristaltic-Controller>
+
+* <https://www.thingiverse.com/thing:254956>
+
+It uses a 28BYJ-48 stepper gear motor.
+
+The steppers are cheap and easy to get, e.g.:
+
+* <https://www.ebay.com/itm/224283233677>
+
+* <https://www.amazon.com/10sets-28BYJ-48-ULN2003-Stepper-Driver/dp/B0CZT299DT>
+
+Good description of the motor and driver here:
+
+* <https://lastminuteengineers.com/28byj48-stepper-motor-arduino-tutorial/>
+
+* <https://components101.com/motors/28byj-48-stepper-motor>
 
 
 ## Lights
