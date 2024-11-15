@@ -1,43 +1,104 @@
 extern crate tokio;
+use chrono::DateTime;
+use chrono::Local;
+use chrono::TimeDelta;
 
 #[tokio::main]
 async fn main() -> () {
-    let body = reqwest::get("https://docs.rs/").await.unwrap().text().await;
-    println!("{body:#?}");
+    // WARN while program is running, changing the clock, timezone, or daylight savings could cause problems
 
-    // for use with `python3 -m http.server 9732`
-    let resp = reqwest::get("http://127.0.0.1:9732").await;
-    println!("{resp:#?}");
+    // using local time as identified by system
+    let current_datetime = chrono::Local::now();
+    println!(
+        "current local time according to chrono : {:?}",
+        current_datetime
+    );
 
-    let p_client = reqwest::Client::new();
-    println!("{p_client:#?}");
-    let res_one = p_client
-        .post("http://httpbin.org/post")
-        .body("this is the body one")
-        .send()
-        .await;
-    println!("res_one : {res_one:#?}");
+    #[derive(Debug, Clone)]
+    pub enum Command {
+        Lighting(Lights),
+        Pumping(Pump),
+    }
 
-    let res_one_body = res_one.expect("Res one to unwrap").text().await;
-    println!("res_one_body : {res_one_body:#?}");
+    #[derive(Debug, Clone)]
+    pub enum Lights {
+        LightsOn(DateTime<Local>),
+        LightsOff(DateTime<Local>),
+    }
 
-    let q_client = reqwest::Client::new();
-    println!("{q_client:#?}");
+    #[derive(Debug, Clone)]
+    pub enum Pump {
+        PumpOn(DateTime<Local>),
+        PumpOff(DateTime<Local>),
+    }
 
-    // now using raw bytes, Vec<u8>
-    // custom types also possible.
-    let encoded: Vec<u8> = "this is the body two".into();
-    println!("{encoded:#?}");
+    impl Pump {
+        pub fn inspect(value: Pump) -> DateTime<Local> {
+            match value {
+                Pump::PumpOn(x) => x,
+                Pump::PumpOff(x) => x,
+            }
+        }
+    }
 
-    let res_two = q_client
-        .post("https://httpbin.org/post")
-        .body(encoded)
-        .send()
-        .await;
-    println!("res_two : {res_two:#?}");
+    impl Lights {
+        pub fn inspect(value: Lights) -> DateTime<Local> {
+            match value {
+                Lights::LightsOn(x) => x,
+                Lights::LightsOff(x) => x,
+            }
+        }
+    }
 
-    let res_two_body = res_two.expect("Res two to unwrap").text().await;
-    println!("res_two_body : {res_two_body:#?}");
+    let mut _command_schedule: Vec<Command> = Vec::new();
+    // TODO read-in YAML file for schedule (MVP)
+    // see serde-yaml crate
 
-    ()
+    // for now, we will hard code a demo schedule
+    // would this be good as a test?
+    let lights_on_time = Lights::LightsOn(
+        current_datetime
+            .checked_add_signed(TimeDelta::seconds(5))
+            .expect("lights on to work"),
+    );
+    let lights_off_time = Lights::LightsOff(
+        current_datetime
+            .checked_add_signed(TimeDelta::seconds(15))
+            .expect("lights off to work"),
+    );
+    let pump_on_time = Pump::PumpOn(
+        current_datetime
+            .checked_add_signed(TimeDelta::seconds(10))
+            .expect("pump to work"),
+    );
+    let pump_off_time = Pump::PumpOff(
+        current_datetime
+            .checked_add_signed(TimeDelta::seconds(20))
+            .expect("pump to work"),
+    );
+
+    // manual display, but to show user would also require similar shinanigans
+    println!("pump off! @ {:#?}", Pump::inspect(pump_off_time.clone()));
+    println!("pump on! @ {:#?}", Pump::inspect(pump_on_time.clone()));
+    println!(
+        "lights off! @ {:#?}",
+        Lights::inspect(lights_off_time.clone())
+    );
+    println!(
+        "lights on! @ {:#?}",
+        Lights::inspect(lights_on_time.clone())
+    );
+
+    let demo_schedule: Vec<Command> = vec![
+        Command::Lighting(lights_on_time),
+        Command::Lighting(lights_off_time),
+        Command::Pumping(pump_on_time),
+        Command::Pumping(pump_off_time),
+    ];
+
+    println!("demo schedule: {:?}", demo_schedule);
+    // multiday schedules would also fit into a single schedule given the systemtime's calandar
+    // and could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
+
+    //TODO NEXT : two async tasks: spawn, spawn + join
 }
