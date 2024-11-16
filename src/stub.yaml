@@ -1,0 +1,15 @@
+# basic stub YAML file for demo
+system: taproot
+app: hydroponics-controller 
+devices:
+  - lights:
+      type: "single light or system on one switch"
+      command:
+        - lightson
+        - lightsoff
+  - pumps:
+      type: "single pump or system on one switch"
+      command:
+        - pumpon
+        - pumpoff
+cool: true

@@ -47,7 +47,11 @@ async fn main() -> () {
 
     let mut _command_schedule: Vec<Command> = Vec::new();
     // TODO read-in YAML file for schedule (MVP)
-    // see serde-yaml crate
+    let contents = tokio::fs::read_to_string("stub.yaml")
+        .await
+        .expect("reading in YAML to work");
+
+    println!("YAML File has {} lines.", contents.lines().count());
 
     // for now, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
