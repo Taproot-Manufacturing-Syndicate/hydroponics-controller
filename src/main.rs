@@ -32,6 +32,19 @@ async fn main() -> () {
         PumpOff(DateTime<Local>),
     }
 
+    impl Command {
+        pub fn inspect(self) -> DateTime<Local> {
+            match self {
+                //Command::Pump::PumpOn(x) => x,
+                Command::Pumping(Pump::PumpOn(x)) => x,
+                Command::Pumping(Pump::PumpOff(x)) => x,
+                Command::Lighting(Lights::LightsOn(x)) => x,
+                Command::Lighting(Lights::LightsOff(x)) => x,
+            }
+        }
+    }
+
+    // TODO possibly remove these two impls
     impl Pump {
         pub fn inspect(value: Pump) -> DateTime<Local> {
             match value {
@@ -59,22 +72,22 @@ async fn main() -> () {
     let lights_on_time = Lights::LightsOn(
         current_datetime
             .checked_add_signed(TimeDelta::seconds(5))
-            .expect("lights on to work"),
+            .expect("lights on init to work"),
     );
     let lights_off_time = Lights::LightsOff(
         current_datetime
             .checked_add_signed(TimeDelta::seconds(15))
-            .expect("lights off to work"),
+            .expect("lights off init to work"),
     );
     let pump_on_time = Pump::PumpOn(
         current_datetime
             .checked_add_signed(TimeDelta::seconds(10))
-            .expect("pump to work"),
+            .expect("pump on init to work"),
     );
     let pump_off_time = Pump::PumpOff(
         current_datetime
             .checked_add_signed(TimeDelta::seconds(20))
-            .expect("pump to work"),
+            .expect("pump off init to work"),
     );
 
     // manual display, but to show user would also require similar shinanigans
@@ -89,16 +102,29 @@ async fn main() -> () {
         Lights::inspect(lights_on_time.clone())
     );
 
-    let demo_schedule: Vec<Command> = vec![
+    let mut demo_schedule: Vec<Command> = vec![
         Command::Lighting(lights_on_time),
         Command::Lighting(lights_off_time),
         Command::Pumping(pump_on_time),
         Command::Pumping(pump_off_time),
     ];
 
-    println!("demo schedule: {:?}", demo_schedule);
+    //println!("{:#?}", lights_on_time.inspect());
+    println!(
+        "pity the fol {:#?}",
+        Command::Pumping(Pump::PumpOn(current_datetime))
+    );
+
+    println!("demo schedule init: {:?}", demo_schedule);
+    demo_schedule.sort_by(|a, b| Command::inspect(a.clone()).cmp(&Command::inspect(b.clone())));
+    println!("demo schedule sorted: {:?}", demo_schedule);
+
+    // TODO now sorted into temporal order, parse into device cues
+    let mut light_schedule: Vec<Command> = Vec::new();
+    let mut pump_schedule: Vec<Command> = Vec::new();
+
     // multiday schedules would also fit into a single schedule given the systemtime's calandar
     // and could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
 
-    //TODO NEXT : two async tasks: spawn, spawn + join
+    //TODO : two async tasks: spawn, spawn + join
 }
