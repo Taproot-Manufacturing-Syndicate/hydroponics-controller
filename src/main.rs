@@ -1,6 +1,7 @@
 extern crate tokio;
 use chrono::DateTime;
 use chrono::Local;
+use chrono::SubsecRound;
 use chrono::TimeDelta;
 
 #[tokio::main]
@@ -67,25 +68,30 @@ async fn main() -> () {
     // TODO read-in YAML file for schedule (MVP)
     // see serde-yaml crate
 
-    // for now, we will hard code a demo schedule
+    // for now, we will hard code a single day demo schedule
+    // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
     // would this be good as a test?
     let lights_on_time = Lights::LightsOn(
         current_datetime
+            .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(5))
             .expect("lights on init to work"),
     );
     let lights_off_time = Lights::LightsOff(
         current_datetime
+            .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(15))
             .expect("lights off init to work"),
     );
     let pump_on_time = Pump::PumpOn(
         current_datetime
+            .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(10))
             .expect("pump on init to work"),
     );
     let pump_off_time = Pump::PumpOff(
         current_datetime
+            .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(20))
             .expect("pump off init to work"),
     );
@@ -109,12 +115,6 @@ async fn main() -> () {
         Command::Pumping(pump_off_time),
     ];
 
-    //println!("{:#?}", lights_on_time.inspect());
-    println!(
-        "pity the fol {:#?}",
-        Command::Pumping(Pump::PumpOn(current_datetime))
-    );
-
     println!("demo schedule init: {:?}", demo_schedule);
     demo_schedule.sort_by(|a, b| Command::inspect(a.clone()).cmp(&Command::inspect(b.clone())));
     println!("demo schedule sorted: {:?}", demo_schedule);
@@ -123,8 +123,15 @@ async fn main() -> () {
     let mut light_schedule: Vec<Command> = Vec::new();
     let mut pump_schedule: Vec<Command> = Vec::new();
 
-    // multiday schedules would also fit into a single schedule given the systemtime's calandar
-    // and could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
+    for cmd in &demo_schedule {
+        match cmd {
+            Command::Lighting(_) => light_schedule.push(cmd.clone()),
+            Command::Pumping(_) => pump_schedule.push(cmd.clone()),
+        }
+    }
+
+    println!("light schedule : {:?}", light_schedule);
+    println!("pump schedule : {:?}", pump_schedule);
 
     //TODO : two async tasks: spawn, spawn + join
 }
