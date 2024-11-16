@@ -3,6 +3,7 @@ use chrono::DateTime;
 use chrono::Local;
 use chrono::SubsecRound;
 use chrono::TimeDelta;
+use serde_json::Value;
 
 #[tokio::main]
 async fn main() -> () {
@@ -45,12 +46,21 @@ async fn main() -> () {
     }
 
     let mut _command_schedule: Vec<Command> = Vec::new();
-    // TODO read-in JSON file for schedule (MVP)
+    // TODO JSON file for schedule (MVP)
     let contents = tokio::fs::read_to_string("demo.json")
         .await
         .expect("reading in JSON to work");
-
     println!("JSON File has {} lines.", contents.lines().count());
+    let demo_json_contents: Value = serde_json::from_str(
+        &(tokio::fs::read_to_string("demo.json")
+            .await
+            .expect("reading in JSON to work")),
+    )
+    .unwrap();
+    println!(
+        "JSON is working inside main, here are some untyped values,  {:?}, cool? {:?}",
+        demo_json_contents["devices"], demo_json_contents["cool"]
+    );
 
     // for now, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
