@@ -1,0 +1,21 @@
+{"system": "taproot",
+"app": "hydroponics-controller", 
+"service": "initialization",
+"devices": {
+  "lights": {
+    "main": {
+      "type": "single light or system on one switch",
+      "commands": 
+        ["lightson", "lightsoff"]
+    }
+  },
+  "pumps": {
+    "main": {
+      "type": "single pump or system on one switch",
+      "commands":
+        ["pumpon", "pumpoff"]
+    }
+  }
+},
+"cool": true
+}

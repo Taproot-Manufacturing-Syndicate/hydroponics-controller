@@ -36,7 +36,6 @@ async fn main() -> () {
     impl Command {
         pub fn inspect(self) -> DateTime<Local> {
             match self {
-                //Command::Pump::PumpOn(x) => x,
                 Command::Pumping(Pump::PumpOn(x)) => x,
                 Command::Pumping(Pump::PumpOff(x)) => x,
                 Command::Lighting(Lights::LightsOn(x)) => x,
@@ -46,12 +45,12 @@ async fn main() -> () {
     }
 
     let mut _command_schedule: Vec<Command> = Vec::new();
-    // TODO read-in YAML file for schedule (MVP)
-    let contents = tokio::fs::read_to_string("stub.yaml")
+    // TODO read-in JSON file for schedule (MVP)
+    let contents = tokio::fs::read_to_string("demo.json")
         .await
-        .expect("reading in YAML to work");
+        .expect("reading in JSON to work");
 
-    println!("YAML File has {} lines.", contents.lines().count());
+    println!("JSON File has {} lines.", contents.lines().count());
 
     // for now, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
@@ -84,7 +83,6 @@ async fn main() -> () {
     // manual display, but to show user would also require similar shinanigans
     println!("pump off! @ {:#?}", Command::inspect(pump_off_time.clone()));
     println!("pump on! @ {:#?}", Command::inspect(pump_on_time.clone()));
-
     println!(
         "lights off! @ {:#?}",
         Command::inspect(lights_off_time.clone())
@@ -93,6 +91,7 @@ async fn main() -> () {
         "lights on! @ {:#?}",
         Command::inspect(lights_on_time.clone())
     );
+    //TODO pretty print upcoming schedule instead
 
     let mut demo_schedule: Vec<Command> =
         vec![lights_on_time, lights_off_time, pump_on_time, pump_off_time];
