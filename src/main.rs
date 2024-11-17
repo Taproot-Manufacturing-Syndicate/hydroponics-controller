@@ -5,9 +5,8 @@ use chrono::Local;
 use chrono::SubsecRound;
 use chrono::TimeDelta;
 use serde_json::Value;
-use tokio::spawn;
 use tokio::task::JoinSet;
-use tokio::time::{sleep, Duration};
+use tokio::time::sleep;
 
 #[derive(Debug, Clone)]
 pub enum Instruction {
@@ -110,7 +109,7 @@ async fn main() -> () {
 
     // When set completes the schedule is exhausted.
     let mut set: JoinSet<()> = JoinSet::new();
-    // Adding spawned tasks to set.
+    // Adding spawned tasks to set. These are tokio::task::join_set::JoinSet.spawn
     set.spawn(async move { light_process(lights_schedule).await });
     set.spawn(async move { pump_process(pumps_schedule).await });
 
@@ -121,7 +120,6 @@ async fn main() -> () {
 }
 
 async fn light_process(l_schedule: Vec<Instruction>) -> () {
-    println!("inside light process");
     for l in l_schedule {
         sleep(
             (l.clone().inspect() - chrono::Local::now())
@@ -129,12 +127,30 @@ async fn light_process(l_schedule: Vec<Instruction>) -> () {
                 .expect("to_std to work"),
         )
         .await;
-        println!("l in l_sch");
-        println!("{:?}", l)
+
+        println!("{:?}", l);
+
+        let poster = reqwest::Client::new();
+
+        let post_body = match l {
+            Instruction::Lighting(Lights::LightsOn(_)) => "LightsOn",
+            Instruction::Lighting(Lights::LightsOff(_)) => "LightsOff",
+            _ => panic!("wrong or malformed type in lighting"),
+        };
+
+        let res = poster
+            .post("http://127.0.0.1:9732")
+            .body(post_body)
+            .send()
+            .await;
+
+        if res.is_err() {
+            // TODO handle errors
+            println!("error result in POST, lighting")
+        }
     }
 }
 async fn pump_process(p_schedule: Vec<Instruction>) -> () {
-    println!("inside pump process");
     for p in p_schedule {
         sleep(
             (p.clone().inspect() - chrono::Local::now())
@@ -142,7 +158,26 @@ async fn pump_process(p_schedule: Vec<Instruction>) -> () {
                 .expect("to_std to work"),
         )
         .await;
-        println!("p in p_sch");
-        println!("{:?}", p)
+
+        println!("{:?}", p);
+
+        let poster = reqwest::Client::new();
+
+        let post_body = match p {
+            Instruction::Pumping(Pumps::PumpsOn(_)) => "PumpsOn",
+            Instruction::Pumping(Pumps::PumpsOff(_)) => "PumpsOff",
+            _ => panic!("wrong or malformed type in Pumping"),
+        };
+
+        let res = poster
+            .post("http://127.0.0.1:9732")
+            .body(post_body)
+            .send()
+            .await;
+
+        if res.is_err() {
+            // TODO handle errors
+            println!("error result in POST, Pumping")
+        }
     }
 }
