@@ -10,7 +10,7 @@ use tokio::time::{sleep, Duration};
 #[derive(Debug, Clone)]
 pub enum Instruction {
     Lighting(Lights),
-    Pumping(Pump),
+    Pumping(Pumps),
 }
 
 #[derive(Debug, Clone)]
@@ -20,31 +20,31 @@ pub enum Lights {
 }
 
 #[derive(Debug, Clone)]
-pub enum Pump {
-    PumpOn(DateTime<Local>),
-    PumpOff(DateTime<Local>),
+pub enum Pumps {
+    PumpsOn(DateTime<Local>),
+    PumpsOff(DateTime<Local>),
 }
 
 impl Instruction {
     pub fn inspect(self) -> DateTime<Local> {
         match self {
-            Instruction::Pumping(Pump::PumpOn(x)) => x,
-            Instruction::Pumping(Pump::PumpOff(x)) => x,
+            Instruction::Pumping(Pumps::PumpsOn(x)) => x,
+            Instruction::Pumping(Pumps::PumpsOff(x)) => x,
             Instruction::Lighting(Lights::LightsOn(x)) => x,
             Instruction::Lighting(Lights::LightsOff(x)) => x,
         }
     }
 }
+
 #[tokio::main]
 async fn main() -> () {
-    // WARN while program is running, changing the clock, timezone, or daylight savings could cause problems
-
     // using local time as identified by system
     let current_datetime = chrono::Local::now();
 
     let mut _command_schedule: Vec<Instruction> = Vec::new();
 
     // TODO JSON file for schedule (MVP)
+
     let demo_json_contents: Value = serde_json::from_str(
         &(tokio::fs::read_to_string("demo.json")
             .await
@@ -71,13 +71,13 @@ async fn main() -> () {
             .checked_add_signed(TimeDelta::seconds(3))
             .expect("pump off init to work"),
     ));
-    let pump_on_time = Instruction::Pumping(Pump::PumpOn(
+    let pump_on_time = Instruction::Pumping(Pumps::PumpsOn(
         current_datetime
             .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(8))
             .expect("pump off init to work"),
     ));
-    let pump_off_time = Instruction::Pumping(Pump::PumpOff(
+    let pump_off_time = Instruction::Pumping(Pumps::PumpsOff(
         current_datetime
             .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(13))
@@ -95,21 +95,21 @@ async fn main() -> () {
     println!("demo schedule sorted: {:#?}", demo_schedule);
 
     // now sorted into temporal order, parse into device cues
-    let mut light_schedule: Vec<Instruction> = Vec::new();
-    let mut pump_schedule: Vec<Instruction> = Vec::new();
+    let mut lights_schedule: Vec<Instruction> = Vec::new();
+    let mut pumps_schedule: Vec<Instruction> = Vec::new();
 
     for cmd in &demo_schedule {
         match cmd {
-            Instruction::Lighting(_) => light_schedule.push(cmd.clone()),
-            Instruction::Pumping(_) => pump_schedule.push(cmd.clone()),
+            Instruction::Lighting(_) => lights_schedule.push(cmd.clone()),
+            Instruction::Pumping(_) => pumps_schedule.push(cmd.clone()),
         }
     }
 
-    println!("light schedule : {:?}", light_schedule);
-    println!("pump schedule : {:?}", pump_schedule);
+    println!("light schedule : {:?}", lights_schedule);
+    println!("pump schedule : {:?}", pumps_schedule);
 
-    tokio::spawn(async move { light_process(light_schedule).await });
-    tokio::spawn(async move { pump_process(pump_schedule).await });
+    tokio::spawn(async move { light_process(lights_schedule).await });
+    tokio::spawn(async move { pump_process(pumps_schedule).await });
 
     // TODO replace with join
     sleep(Duration::from_secs(15)).await;
