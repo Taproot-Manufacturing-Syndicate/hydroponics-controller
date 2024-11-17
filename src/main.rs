@@ -41,18 +41,10 @@ async fn main() -> () {
 
     // using local time as identified by system
     let current_datetime = chrono::Local::now();
-    println!(
-        "current local time according to chrono : {:?}",
-        current_datetime
-    );
 
     let mut _command_schedule: Vec<Instruction> = Vec::new();
 
     // TODO JSON file for schedule (MVP)
-    let contents = tokio::fs::read_to_string("demo.json")
-        .await
-        .expect("reading in JSON to work");
-    println!("JSON File has {} lines.", contents.lines().count());
     let demo_json_contents: Value = serde_json::from_str(
         &(tokio::fs::read_to_string("demo.json")
             .await
@@ -70,7 +62,7 @@ async fn main() -> () {
     let lights_off_time = Instruction::Lighting(Lights::LightsOff(
         current_datetime
             .round_subsecs(0)
-            .checked_add_signed(TimeDelta::seconds(7))
+            .checked_add_signed(TimeDelta::seconds(14))
             .expect("pump off init to work"),
     ));
     let lights_on_time = Instruction::Lighting(Lights::LightsOn(
@@ -92,32 +84,15 @@ async fn main() -> () {
             .expect("pump off init to work"),
     ));
 
-    // manual display, but to show user would also require similar shinanigans
-    println!(
-        "pump off! @ {:#?}",
-        Instruction::inspect(pump_off_time.clone())
-    );
-    println!(
-        "pump on! @ {:#?}",
-        Instruction::inspect(pump_on_time.clone())
-    );
-    println!(
-        "lights off! @ {:#?}",
-        Instruction::inspect(lights_off_time.clone())
-    );
-    println!(
-        "lights on! @ {:#?}",
-        Instruction::inspect(lights_on_time.clone())
-    );
-    //TODO pretty print upcoming schedule instead
-
     let mut demo_schedule: Vec<Instruction> =
         vec![lights_on_time, lights_off_time, pump_on_time, pump_off_time];
 
-    println!("demo schedule init: {:?}", demo_schedule);
+    //TODO pretty print upcoming schedule instead
+    // manual display, but to show user would also require similar shinanigans
+    println!("demo schedule init: {:#?}", demo_schedule);
     demo_schedule
         .sort_by(|a, b| Instruction::inspect(a.clone()).cmp(&Instruction::inspect(b.clone())));
-    println!("demo schedule sorted: {:?}", demo_schedule);
+    println!("demo schedule sorted: {:#?}", demo_schedule);
 
     // now sorted into temporal order, parse into device cues
     let mut light_schedule: Vec<Instruction> = Vec::new();
