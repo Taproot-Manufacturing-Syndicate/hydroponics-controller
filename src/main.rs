@@ -1,10 +1,15 @@
+#[macro_use]
+extern crate serde;
 extern crate tokio;
 
 use chrono::DateTime;
 use chrono::Local;
 use chrono::SubsecRound;
 use chrono::TimeDelta;
+use serde_json::Deserializer;
 use serde_json::Value;
+use std::borrow::Borrow;
+use std::collections::HashMap;
 use tokio::task::JoinSet;
 use tokio::time::sleep;
 
@@ -41,21 +46,37 @@ impl Instruction {
 async fn main() -> () {
     let current_datetime = chrono::Local::now();
 
-    // TODO JSON file for schedule (MVP)
-    let mut _command_schedule: Vec<Instruction> = Vec::new();
-
     let demo_json_contents: Value = serde_json::from_str(
         &(tokio::fs::read_to_string("demo.json")
             .await
             .expect("reading in JSON to work")),
     )
-    .unwrap();
+    .expect("JSON Value to work after read-in");
     println!(
         "JSON is working inside main, here are some untyped values,  {:?}, cool? {:?}",
         demo_json_contents["devices"], demo_json_contents["cool"]
     );
 
-    // for now, we will hard code a single day demo schedule
+    // TODO JSON file for schedule (MVP)
+    let schedule_json_contents: Value = serde_json::from_str(
+        &(tokio::fs::read_to_string("schedule.json")
+            .await
+            .expect("reading in JSON to work")),
+    )
+    .expect("JSON Value to work after read-in");
+    println!(
+        "JSON schedule is working inside main, {:?}",
+        schedule_json_contents["schedule"]
+    );
+    /*let sched: <_> = serde_json::from_value(schedule_json_contents)
+            .expect("JSON schedule contents to provide Value");
+        println!("{:?}", sched);
+    */
+
+    // command schedule is hard coded from file, so not good for demo
+    let mut _command_schedule: Vec<Instruction> = Vec::new();
+
+    // for demonstration, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
     // would this be good as a test?
     let lights_off_time = Instruction::Lighting(Lights::LightsOff(
