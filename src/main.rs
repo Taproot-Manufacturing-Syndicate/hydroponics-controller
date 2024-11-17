@@ -1,9 +1,11 @@
 extern crate tokio;
+
 use chrono::DateTime;
 use chrono::Local;
 use chrono::SubsecRound;
 use chrono::TimeDelta;
 use serde_json::Value;
+use tokio::time::{sleep, Duration};
 
 #[derive(Debug, Clone)]
 pub enum Instruction {
@@ -131,17 +133,38 @@ async fn main() -> () {
     println!("light schedule : {:?}", light_schedule);
     println!("pump schedule : {:?}", pump_schedule);
 
-    //TODO : two async tasks: spawn, spawn + join
-    tokio::spawn(async move {
-        // Process each socket concurrently.
-        light_process(light_schedule).await
-    });
+    tokio::spawn(async move { light_process(light_schedule).await });
+    tokio::spawn(async move { pump_process(pump_schedule).await });
 
-    //calculate time within task?
-    //TODO : actually send requests based on time
+    // TODO replace with join
+    sleep(Duration::from_secs(35)).await;
+
+    return ();
 }
 
-async fn light_process(schedule: Vec<Instruction>) -> () {
-    // TODO add duration to systemttime
-    println!("inside light process")
+async fn light_process(l_schedule: Vec<Instruction>) -> () {
+    println!("inside light process");
+    for l in l_schedule {
+        sleep(
+            (l.clone().inspect() - chrono::Local::now())
+                .to_std()
+                .expect("to_std to work"),
+        )
+        .await;
+        println!("l in l_sch");
+        println!("{:?}", l)
+    }
+}
+async fn pump_process(p_schedule: Vec<Instruction>) -> () {
+    println!("inside pump process");
+    for p in p_schedule {
+        sleep(
+            (p.clone().inspect() - chrono::Local::now())
+                .to_std()
+                .expect("to_std to work"),
+        )
+        .await;
+        println!("p in p_sch");
+        println!("{:?}", p)
+    }
 }
