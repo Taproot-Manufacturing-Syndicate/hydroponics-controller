@@ -5,6 +5,8 @@ use chrono::Local;
 use chrono::SubsecRound;
 use chrono::TimeDelta;
 use serde_json::Value;
+use tokio::spawn;
+use tokio::task::JoinSet;
 use tokio::time::{sleep, Duration};
 
 #[derive(Debug, Clone)]
@@ -38,12 +40,10 @@ impl Instruction {
 
 #[tokio::main]
 async fn main() -> () {
-    // using local time as identified by system
     let current_datetime = chrono::Local::now();
 
-    let mut _command_schedule: Vec<Instruction> = Vec::new();
-
     // TODO JSON file for schedule (MVP)
+    let mut _command_schedule: Vec<Instruction> = Vec::new();
 
     let demo_json_contents: Value = serde_json::from_str(
         &(tokio::fs::read_to_string("demo.json")
@@ -108,13 +108,16 @@ async fn main() -> () {
     println!("light schedule : {:?}", lights_schedule);
     println!("pump schedule : {:?}", pumps_schedule);
 
-    tokio::spawn(async move { light_process(lights_schedule).await });
-    tokio::spawn(async move { pump_process(pumps_schedule).await });
+    // When set completes the schedule is exhausted.
+    let mut set: JoinSet<()> = JoinSet::new();
+    // Adding spawned tasks to set.
+    set.spawn(async move { light_process(lights_schedule).await });
+    set.spawn(async move { pump_process(pumps_schedule).await });
 
-    // TODO replace with join
-    sleep(Duration::from_secs(15)).await;
-
-    return ();
+    // then waiting for them all to complete.
+    set.join_all().await;
+    println!("schedule is completed");
+    // therefore main returns () and the program exits.
 }
 
 async fn light_process(l_schedule: Vec<Instruction>) -> () {
