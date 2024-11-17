@@ -70,25 +70,25 @@ async fn main() -> () {
     let lights_off_time = Instruction::Lighting(Lights::LightsOff(
         current_datetime
             .round_subsecs(0)
-            .checked_add_signed(TimeDelta::seconds(25))
+            .checked_add_signed(TimeDelta::seconds(7))
             .expect("pump off init to work"),
     ));
     let lights_on_time = Instruction::Lighting(Lights::LightsOn(
         current_datetime
             .round_subsecs(0)
-            .checked_add_signed(TimeDelta::seconds(15))
+            .checked_add_signed(TimeDelta::seconds(3))
             .expect("pump off init to work"),
     ));
     let pump_on_time = Instruction::Pumping(Pump::PumpOn(
         current_datetime
             .round_subsecs(0)
-            .checked_add_signed(TimeDelta::seconds(20))
+            .checked_add_signed(TimeDelta::seconds(8))
             .expect("pump off init to work"),
     ));
     let pump_off_time = Instruction::Pumping(Pump::PumpOff(
         current_datetime
             .round_subsecs(0)
-            .checked_add_signed(TimeDelta::seconds(30))
+            .checked_add_signed(TimeDelta::seconds(13))
             .expect("pump off init to work"),
     ));
 
@@ -137,7 +137,7 @@ async fn main() -> () {
     tokio::spawn(async move { pump_process(pump_schedule).await });
 
     // TODO replace with join
-    sleep(Duration::from_secs(35)).await;
+    sleep(Duration::from_secs(15)).await;
 
     return ();
 }
