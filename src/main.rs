@@ -1,14 +1,12 @@
-#[macro_use]
 extern crate serde;
 extern crate tokio;
 
 use chrono::DateTime;
-use chrono::Local;
 use chrono::SubsecRound;
 use chrono::TimeDelta;
-use serde_json::Deserializer;
+use chrono::Utc;
+use serde::Deserialize;
 use serde_json::Value;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use tokio::task::JoinSet;
 use tokio::time::sleep;
@@ -21,18 +19,18 @@ pub enum Instruction {
 
 #[derive(Debug, Clone)]
 pub enum Lights {
-    LightsOn(DateTime<Local>),
-    LightsOff(DateTime<Local>),
+    LightsOn(DateTime<Utc>),
+    LightsOff(DateTime<Utc>),
 }
 
 #[derive(Debug, Clone)]
 pub enum Pumps {
-    PumpsOn(DateTime<Local>),
-    PumpsOff(DateTime<Local>),
+    PumpsOn(DateTime<Utc>),
+    PumpsOff(DateTime<Utc>),
 }
 
 impl Instruction {
-    pub fn inspect(self) -> DateTime<Local> {
+    pub fn inspect(self) -> DateTime<Utc> {
         match self {
             Instruction::Pumping(Pumps::PumpsOn(x)) => x,
             Instruction::Pumping(Pumps::PumpsOff(x)) => x,
@@ -44,7 +42,7 @@ impl Instruction {
 
 #[tokio::main]
 async fn main() -> () {
-    let current_datetime = chrono::Local::now();
+    let current_datetime = chrono::Utc::now();
 
     let demo_json_contents: Value = serde_json::from_str(
         &(tokio::fs::read_to_string("demo.json")
@@ -68,13 +66,36 @@ async fn main() -> () {
         "JSON schedule is working inside main, {:?}",
         schedule_json_contents["schedule"]
     );
-    /*let sched: <_> = serde_json::from_value(schedule_json_contents)
-            .expect("JSON schedule contents to provide Value");
-        println!("{:?}", sched);
-    */
 
     // command schedule is hard coded from file, so not good for demo
-    let mut _command_schedule: Vec<Instruction> = Vec::new();
+    let mut command_schedule: Vec<Instruction> = Vec::new();
+
+    let kv_sched = serde_json::Map::deserialize(&schedule_json_contents["schedule"])
+        .expect("deserialize to map to be working");
+    println!("HEY : {:#?}", kv_sched);
+
+    /*
+    for (k, v) in kv_sched {
+        println!("{:?}", k);
+        let vee = serde_json::Value::as_str(&v)
+            .expect("geting string of datetime from value should work");
+        println!("{:?}", vee);
+        match k.as_str() {
+           "PumpOn" => {
+                command_schedule.push(Instruction::Pumping(Pumps::PumpsOn(DateTime::parse_from_str(vee).into().expect("Something good"))));
+                _ => ()
+            }
+        }i
+        //unwrap Value (string) into chrono::something
+        //key can match enum OR just create something if that's easier
+    }
+        */
+    // s is map of String / Value
+
+    //let sched = chrono::Local::from(schedule_json_contents["schedule"])
+    //     ::from_value(schedule_json_contents)
+    //        .expect("JSON schedule contents to provide Value");
+    //println!("{:?}", sched);
 
     // for demonstration, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
@@ -143,7 +164,7 @@ async fn main() -> () {
 async fn light_process(l_schedule: Vec<Instruction>) -> () {
     for l in l_schedule {
         sleep(
-            (l.clone().inspect() - chrono::Local::now())
+            (l.clone().inspect() - chrono::Utc::now())
                 .to_std()
                 .expect("to_std to work"),
         )
@@ -174,7 +195,7 @@ async fn light_process(l_schedule: Vec<Instruction>) -> () {
 async fn pump_process(p_schedule: Vec<Instruction>) -> () {
     for p in p_schedule {
         sleep(
-            (p.clone().inspect() - chrono::Local::now())
+            (p.clone().inspect() - chrono::Utc::now())
                 .to_std()
                 .expect("to_std to work"),
         )
