@@ -7,7 +7,7 @@ use chrono::TimeDelta;
 use chrono::Utc;
 use serde::Deserialize;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::str::FromStr;
 use tokio::task::JoinSet;
 use tokio::time::sleep;
 
@@ -55,7 +55,7 @@ async fn main() -> () {
         demo_json_contents["devices"], demo_json_contents["cool"]
     );
 
-    // TODO JSON file for schedule (MVP)
+    // JSON file for schedule
     let schedule_json_contents: Value = serde_json::from_str(
         &(tokio::fs::read_to_string("schedule.json")
             .await
@@ -67,35 +67,29 @@ async fn main() -> () {
         schedule_json_contents["schedule"]
     );
 
-    // command schedule is hard coded from file, so not good for demo
+    // command schedule is hard coded from file, so not great for a demo
     let mut command_schedule: Vec<Instruction> = Vec::new();
 
+    // TODO working but can't have ingest multiple keys of same string (command names) with current scheme
     let kv_sched = serde_json::Map::deserialize(&schedule_json_contents["schedule"])
         .expect("deserialize to map to be working");
-    println!("HEY : {:#?}", kv_sched);
-
-    /*
+    println!("kv_sched: {:#?}", kv_sched);
     for (k, v) in kv_sched {
         println!("{:?}", k);
         let vee = serde_json::Value::as_str(&v)
             .expect("geting string of datetime from value should work");
         println!("{:?}", vee);
+        let vee_utc: DateTime<Utc> =
+            chrono::DateTime::from_str(vee).expect("chrono from_str to work");
         match k.as_str() {
-           "PumpOn" => {
-                command_schedule.push(Instruction::Pumping(Pumps::PumpsOn(DateTime::parse_from_str(vee).into().expect("Something good"))));
-                _ => ()
-            }
-        }i
-        //unwrap Value (string) into chrono::something
-        //key can match enum OR just create something if that's easier
+            "PumpsOn" => command_schedule.push(Instruction::Pumping(Pumps::PumpsOn(vee_utc))),
+            "PumpsOff" => command_schedule.push(Instruction::Pumping(Pumps::PumpsOff(vee_utc))),
+            "LightsOn" => command_schedule.push(Instruction::Lighting(Lights::LightsOn(vee_utc))),
+            "LightsOff" => command_schedule.push(Instruction::Lighting(Lights::LightsOff(vee_utc))),
+            _ => panic!("OICH"),
+        }
     }
-        */
-    // s is map of String / Value
-
-    //let sched = chrono::Local::from(schedule_json_contents["schedule"])
-    //     ::from_value(schedule_json_contents)
-    //        .expect("JSON schedule contents to provide Value");
-    //println!("{:?}", sched);
+    println!("COMMAND SCHEDULE: {:?}", command_schedule);
 
     // for demonstration, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc

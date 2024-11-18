@@ -1,7 +1,7 @@
 {
 "system": "taproot",
 "app": "hydroponics-controller", 
-"service": "initialization",
+"service": "schedule",
 "devices": {
   "lights": {
     "main": {
@@ -22,5 +22,12 @@
     }
   }
 },
-"cool": true
+"schedule": {
+  "PumpsOff": "2024-11-18T04:55:15Z",
+  "LightsOn": "2024-11-18T04:55:25Z",
+  "PumpsOn": "2024-11-18T04:55:05Z",
+  "LightsOff": "2024-11-18T04:55:44Z",
+  "LightsOn": "2024-11-18T04:55:45Z",
+  "LightsOff": "2024-11-18T04:55:49Z"
+}
 }
