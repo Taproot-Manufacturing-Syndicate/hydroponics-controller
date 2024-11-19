@@ -11,8 +11,8 @@ use url::Url;
 
 // Schedules in this form are per-device.
 pub struct Schedule {
-    on: URL,
-    off: URL,
+    on: Url,
+    off: Url,
     times: Vec<Event>, //
 }
 
