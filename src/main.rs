@@ -7,10 +7,17 @@ use serde_json::Value;
 use std::str::FromStr;
 use tokio::task::JoinSet;
 use tokio::time::sleep;
+use url::Url;
+
+// Schedules in this form are per-device.
+pub struct Schedule {
+    on: URL,
+    off: URL,
+    times: Vec<Event>, //
+}
 
 // Events in this form will are for simple on/off instructions
 // the on field being true signifying an on signal, and false sinifying off
-#[derive(Debug, Clone)]
 pub struct Event {
     timestamp: DateTime<Utc>,
     on: bool,
@@ -76,7 +83,6 @@ async fn main() -> () {
     // command schedule is hard coded from file, so not great for a demo
     let mut command_schedule: Vec<Instruction> = Vec::new();
 
-    // TODO working but can't have ingest multiple keys of same string (command names) with current scheme
     let kv_sched = serde_json::Map::deserialize(&schedule_json_contents["schedule"])
         .expect("deserialize to map to be working");
     println!("kv_sched: {:#?}", kv_sched);
