@@ -1,10 +1,7 @@
 extern crate serde;
 extern crate tokio;
 
-use chrono::DateTime;
-use chrono::SubsecRound;
-use chrono::TimeDelta;
-use chrono::Utc;
+use chrono::{DateTime, SubsecRound, TimeDelta, Utc};
 use serde::Deserialize;
 use serde_json::Value;
 use std::str::FromStr;
@@ -13,18 +10,18 @@ use tokio::time::sleep;
 
 #[derive(Debug, Clone)]
 pub enum Instruction {
-    Lighting(Lights),
-    Pumping(Pumps),
+    Lighting(LightInstruction),
+    Pumping(PumpInstruction),
 }
 
 #[derive(Debug, Clone)]
-pub enum Lights {
+pub enum LightInstruction {
     LightsOn(DateTime<Utc>),
     LightsOff(DateTime<Utc>),
 }
 
 #[derive(Debug, Clone)]
-pub enum Pumps {
+pub enum PumpInstruction {
     PumpsOn(DateTime<Utc>),
     PumpsOff(DateTime<Utc>),
 }
@@ -32,10 +29,10 @@ pub enum Pumps {
 impl Instruction {
     pub fn inspect(self) -> DateTime<Utc> {
         match self {
-            Instruction::Pumping(Pumps::PumpsOn(x)) => x,
-            Instruction::Pumping(Pumps::PumpsOff(x)) => x,
-            Instruction::Lighting(Lights::LightsOn(x)) => x,
-            Instruction::Lighting(Lights::LightsOff(x)) => x,
+            Instruction::Pumping(PumpInstruction::PumpsOn(x)) => x,
+            Instruction::Pumping(PumpInstruction::PumpsOff(x)) => x,
+            Instruction::Lighting(LightInstruction::LightsOn(x)) => x,
+            Instruction::Lighting(LightInstruction::LightsOff(x)) => x,
         }
     }
 }
@@ -82,10 +79,18 @@ async fn main() -> () {
         let vee_utc: DateTime<Utc> =
             chrono::DateTime::from_str(vee).expect("chrono from_str to work");
         match k.as_str() {
-            "PumpsOn" => command_schedule.push(Instruction::Pumping(Pumps::PumpsOn(vee_utc))),
-            "PumpsOff" => command_schedule.push(Instruction::Pumping(Pumps::PumpsOff(vee_utc))),
-            "LightsOn" => command_schedule.push(Instruction::Lighting(Lights::LightsOn(vee_utc))),
-            "LightsOff" => command_schedule.push(Instruction::Lighting(Lights::LightsOff(vee_utc))),
+            "PumpsOn" => {
+                command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOn(vee_utc)))
+            }
+            "PumpsOff" => {
+                command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOff(vee_utc)))
+            }
+            "LightsOn" => {
+                command_schedule.push(Instruction::Lighting(LightInstruction::LightsOn(vee_utc)))
+            }
+            "LightsOff" => {
+                command_schedule.push(Instruction::Lighting(LightInstruction::LightsOff(vee_utc)))
+            }
             _ => panic!("OICH"),
         }
     }
@@ -94,25 +99,25 @@ async fn main() -> () {
     // for demonstration, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
     // would this be good as a test?
-    let lights_off_time = Instruction::Lighting(Lights::LightsOff(
+    let lights_off_time = Instruction::Lighting(LightInstruction::LightsOff(
         current_datetime
             .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(14))
             .expect("pump off init to work"),
     ));
-    let lights_on_time = Instruction::Lighting(Lights::LightsOn(
+    let lights_on_time = Instruction::Lighting(LightInstruction::LightsOn(
         current_datetime
             .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(3))
             .expect("pump off init to work"),
     ));
-    let pump_on_time = Instruction::Pumping(Pumps::PumpsOn(
+    let pump_on_time = Instruction::Pumping(PumpInstruction::PumpsOn(
         current_datetime
             .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(8))
             .expect("pump off init to work"),
     ));
-    let pump_off_time = Instruction::Pumping(Pumps::PumpsOff(
+    let pump_off_time = Instruction::Pumping(PumpInstruction::PumpsOff(
         current_datetime
             .round_subsecs(0)
             .checked_add_signed(TimeDelta::seconds(13))
@@ -124,10 +129,10 @@ async fn main() -> () {
 
     //TODO pretty print upcoming schedule instead
     // manual display, but to show user would also require similar shinanigans
-    println!("demo schedule init: {:#?}", demo_schedule);
+    println!("demo schedule init: {:?}", demo_schedule);
     demo_schedule
         .sort_by(|a, b| Instruction::inspect(a.clone()).cmp(&Instruction::inspect(b.clone())));
-    println!("demo schedule sorted: {:#?}", demo_schedule);
+    println!("demo schedule sorted: {:?}", demo_schedule);
 
     // now sorted into temporal order, parse into device cues
     let mut lights_schedule: Vec<Instruction> = Vec::new();
@@ -169,8 +174,8 @@ async fn light_process(l_schedule: Vec<Instruction>) -> () {
         let poster = reqwest::Client::new();
 
         let post_body = match l {
-            Instruction::Lighting(Lights::LightsOn(_)) => "LightsOn",
-            Instruction::Lighting(Lights::LightsOff(_)) => "LightsOff",
+            Instruction::Lighting(LightInstruction::LightsOn(_)) => "LightsOn",
+            Instruction::Lighting(LightInstruction::LightsOff(_)) => "LightsOff",
             _ => panic!("wrong or malformed type in lighting"),
         };
 
@@ -200,8 +205,8 @@ async fn pump_process(p_schedule: Vec<Instruction>) -> () {
         let poster = reqwest::Client::new();
 
         let post_body = match p {
-            Instruction::Pumping(Pumps::PumpsOn(_)) => "PumpsOn",
-            Instruction::Pumping(Pumps::PumpsOff(_)) => "PumpsOff",
+            Instruction::Pumping(PumpInstruction::PumpsOn(_)) => "PumpsOn",
+            Instruction::Pumping(PumpInstruction::PumpsOff(_)) => "PumpsOff",
             _ => panic!("wrong or malformed type in Pumping"),
         };
 
