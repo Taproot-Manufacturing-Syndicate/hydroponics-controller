@@ -8,6 +8,14 @@ use std::str::FromStr;
 use tokio::task::JoinSet;
 use tokio::time::sleep;
 
+// Events in this form will are for simple on/off instructions
+// the on field being true signifying an on signal, and false sinifying off
+#[derive(Debug, Clone)]
+pub struct Event {
+    timestamp: DateTime<Utc>,
+    on: bool,
+}
+
 #[derive(Debug, Clone)]
 pub enum Instruction {
     Lighting(LightInstruction),
@@ -64,6 +72,7 @@ async fn main() -> () {
         schedule_json_contents["schedule"]
     );
 
+    // TODO NEW JSON scheme!
     // command schedule is hard coded from file, so not great for a demo
     let mut command_schedule: Vec<Instruction> = Vec::new();
 
