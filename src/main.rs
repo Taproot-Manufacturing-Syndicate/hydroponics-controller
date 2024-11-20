@@ -58,17 +58,6 @@ impl Instruction {
 async fn main() -> () {
     let current_datetime = chrono::Utc::now();
 
-    let demo_json_contents: Value = serde_json::from_str(
-        &(tokio::fs::read_to_string("demo.json")
-            .await
-            .expect("reading in JSON to work")),
-    )
-    .expect("JSON Value to work after read-in");
-    println!(
-        "JSON is working inside main, here are some untyped values,  {:?}, cool? {:?}",
-        demo_json_contents["devices"], demo_json_contents["cool"]
-    );
-
     // JSON file for schedule
     let schedule_json_contents: Value = serde_json::from_str(
         &(tokio::fs::read_to_string("schedule.json")
