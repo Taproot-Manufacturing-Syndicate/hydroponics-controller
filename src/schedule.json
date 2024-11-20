@@ -6,7 +6,8 @@
     "lighting": {
       "main": {
         "type": "single light or system on one outlet",
-        "commands": [{"LightsOn": "127.0.0.1:9732", "Alias": true}, {"LightsOff": "127.0.0.1:9732", "Alias": false}],
+        "commands": {"on": "127.0.0.1:9732",
+          "off": "127.0.0.1:9732"},
         "events": [{"2024-11-18T04:55:25Z": true}, {"2024-11-18T04:55:44Z": false}, {"2024-11-18T04:55:45Z": true}, {"2024-11-18T04:55:49Z": false}],
         "group": "solo",
         "startingstate": "off" 
@@ -15,7 +16,7 @@
     "pumping": {
       "main": {
         "type": "single pump or system on one outlet",
-        "commands":[{"PumpsOn": "127.0.0.1:9732", "Alias": true}, {"PumpsOff": "127.0.0.1:9732", "Alias": false}],
+        "commands":{"on": "127.0.0.1:9732","off": "127.0.0.1:9732"},
         "events": [{"2024-11-18T04:55:05Z": true}, {"2024-11-18T04:55:15Z": false}],
         "group": "solo",
         "startingstate": "off" 
