@@ -5,19 +5,21 @@
   "devices": {
     "lighting": {
       "main": {
-        "type": "single light or system on one outlet",
         "commands": {"on": "127.0.0.1:9732",
-          "off": "127.0.0.1:9732"},
-        "events": [{"2024-11-18T04:55:25Z": true}, {"2024-11-18T04:55:44Z": false}, {"2024-11-18T04:55:45Z": true}, {"2024-11-18T04:55:49Z": false}],
+          "off": "127.0.0.1:9732", "events": [
+            {"timestamp": "2024-11-18T04:55:25Z", "on": true}, {"timestamp": "2024-11-18T04:55:44Z", "on": false}, {"timestamp": "2024-11-18T04:55:45Z", "on": true}, {"timestamp": "2024-11-18T04:55:49Z", "on": false}]
+        },
+        "type": "single light or system on one outlet",
         "group": "solo",
         "startingstate": "off" 
       }
     },
     "pumping": {
       "main": {
+        "commands":{"on": "127.0.0.1:9732","off": "127.0.0.1:9732","events": [
+          {"timestamp" : "2024-11-18T04:55:05Z", "on" : true}, {"timestamp": "2024-11-18T04:55:15Z", "on": false}
+        ]},
         "type": "single pump or system on one outlet",
-        "commands":{"on": "127.0.0.1:9732","off": "127.0.0.1:9732"},
-        "events": [{"2024-11-18T04:55:05Z": true}, {"2024-11-18T04:55:15Z": false}],
         "group": "solo",
         "startingstate": "off" 
       }
