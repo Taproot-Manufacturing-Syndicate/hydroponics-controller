@@ -80,6 +80,7 @@ async fn main() -> () {
         for fixture in cat {
             println!("category : {:?} fixture : {:?}", category, fixture);
             // format strings to make the call to pointer.
+            // TODO ONLY COMMANDS?
             let commands_path = format!("/{}/{}/commands", category, fixture);
             let events_path = format!("/{}/{}/commands/events", category, fixture);
             println!("commands_path {:?}", commands_path);
@@ -103,36 +104,6 @@ async fn main() -> () {
 
     // command schedule is hard coded from file, so not great for a demo
     let mut _command_schedule: Vec<Instruction> = Vec::new();
-
-    /*
-        let kv_sched = serde_json::Map::deserialize(&schedule_json_contents["devices"])
-            .expect("deserialize to map to be working");
-        println!("kv_sched: {:?}", kv_sched);
-        for (k, v) in kv_sched {
-            println!("{:?}", k);
-            let vee = serde_json::Value::as_str(&v)
-                .expect("geting string of datetime from value should work");
-            println!("{:?}", vee);
-            let vee_utc: DateTime<Utc> =
-                chrono::DateTime::from_str(vee).expect("chrono from_str to work");
-            match k.as_str() {
-                "PumpsOn" => {
-                    command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOn(vee_utc)))
-                }
-                "PumpsOff" => {
-                    command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOff(vee_utc)))
-                }
-                "LightsOn" => {
-                    command_schedule.push(Instruction::Lighting(LightInstruction::LightsOn(vee_utc)))
-                }
-                "LightsOff" => {
-                    command_schedule.push(Instruction::Lighting(LightInstruction::LightsOff(vee_utc)))
-                }
-                _ => panic!("OICH"),
-            }
-        }
-        println!("COMMAND SCHEDULE: {:?}", command_schedule);
-    */
 
     // for demonstration, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
