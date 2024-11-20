@@ -10,6 +10,7 @@ use tokio::time::sleep;
 use url::Url;
 
 // Schedules in this form are per-device.
+#[derive(Deserialize)]
 pub struct Schedule {
     on: Url,
     off: Url,
@@ -18,6 +19,7 @@ pub struct Schedule {
 
 // Events in this form will are for simple on/off instructions
 // the on field being true signifying an on signal, and false sinifying off
+#[derive(Debug, Deserialize)]
 pub struct Event {
     timestamp: DateTime<Utc>,
     on: bool,
@@ -74,42 +76,74 @@ async fn main() -> () {
             .expect("reading in JSON to work")),
     )
     .expect("JSON Value to work after read-in");
-    println!(
-        "JSON schedule is working inside main, {:?}",
-        schedule_json_contents["schedule"]
-    );
 
-    // TODO NEW JSON scheme!
-    // command schedule is hard coded from file, so not great for a demo
-    let mut command_schedule: Vec<Instruction> = Vec::new();
+    let devices: Value = schedule_json_contents["devices"].clone();
 
-    let kv_sched = serde_json::Map::deserialize(&schedule_json_contents["schedule"])
-        .expect("deserialize to map to be working");
-    println!("kv_sched: {:#?}", kv_sched);
-    for (k, v) in kv_sched {
-        println!("{:?}", k);
-        let vee = serde_json::Value::as_str(&v)
-            .expect("geting string of datetime from value should work");
-        println!("{:?}", vee);
-        let vee_utc: DateTime<Utc> =
-            chrono::DateTime::from_str(vee).expect("chrono from_str to work");
-        match k.as_str() {
-            "PumpsOn" => {
-                command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOn(vee_utc)))
+    // parse events and commands, and launch async task in for loop
+    for category in devices.as_object().expect("as object to work").keys() {
+        let cat = devices
+            .get(category)
+            .expect("category to be found")
+            .as_object()
+            .expect("as object to work")
+            .keys();
+
+        for fixture in cat {
+            println!("category : {:?} fixture : {:?}", category, fixture);
+            // format strings to make the call to pointer.
+            let commands_path = format!("/{}/{}/commands", category, fixture);
+            let events_path = format!("/{}/{}/commands/events", category, fixture);
+            println!("commands_path {:?}", commands_path);
+            println!("event_path {:?}", events_path);
+
+            //now we can access the url and event schedule.
+            let current_events = devices
+                .pointer(&events_path)
+                .expect("pointer to work")
+                .as_array()
+                .expect("as array to contain a vec of values")
+                .clone();
+            println!("current events : {:?}", current_events);
+            for ce in current_events {
+                let event: Event =
+                    serde_json::from_value(ce).expect("json to deserialize to event struct");
+                println!("Event! : {:?}", event);
             }
-            "PumpsOff" => {
-                command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOff(vee_utc)))
-            }
-            "LightsOn" => {
-                command_schedule.push(Instruction::Lighting(LightInstruction::LightsOn(vee_utc)))
-            }
-            "LightsOff" => {
-                command_schedule.push(Instruction::Lighting(LightInstruction::LightsOff(vee_utc)))
-            }
-            _ => panic!("OICH"),
         }
     }
-    println!("COMMAND SCHEDULE: {:?}", command_schedule);
+
+    // command schedule is hard coded from file, so not great for a demo
+    let mut _command_schedule: Vec<Instruction> = Vec::new();
+
+    /*
+        let kv_sched = serde_json::Map::deserialize(&schedule_json_contents["devices"])
+            .expect("deserialize to map to be working");
+        println!("kv_sched: {:?}", kv_sched);
+        for (k, v) in kv_sched {
+            println!("{:?}", k);
+            let vee = serde_json::Value::as_str(&v)
+                .expect("geting string of datetime from value should work");
+            println!("{:?}", vee);
+            let vee_utc: DateTime<Utc> =
+                chrono::DateTime::from_str(vee).expect("chrono from_str to work");
+            match k.as_str() {
+                "PumpsOn" => {
+                    command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOn(vee_utc)))
+                }
+                "PumpsOff" => {
+                    command_schedule.push(Instruction::Pumping(PumpInstruction::PumpsOff(vee_utc)))
+                }
+                "LightsOn" => {
+                    command_schedule.push(Instruction::Lighting(LightInstruction::LightsOn(vee_utc)))
+                }
+                "LightsOff" => {
+                    command_schedule.push(Instruction::Lighting(LightInstruction::LightsOff(vee_utc)))
+                }
+                _ => panic!("OICH"),
+            }
+        }
+        println!("COMMAND SCHEDULE: {:?}", command_schedule);
+    */
 
     // for demonstration, we will hard code a single day demo schedule
     // multi day schedules could be generated algorithmically, ie, same for 12 days or, reduce light by 5/min a day for 40 days, etc
