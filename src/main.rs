@@ -49,8 +49,6 @@ async fn main() -> () {
             .keys();
 
         for fixture in cat {
-            println!("category : {:?} fixture : {:?}", category, fixture);
-
             // format String to make the call to pointer.
             let commands_path = format!("/{}/{}/commands", category, fixture);
             println!("commands_path {:?}", commands_path);
@@ -64,28 +62,34 @@ async fn main() -> () {
             )
             .expect("serde to get schedule");
 
-            for ev in fixture_schedule.times {
-                println!("reading Event : {:?}", ev);
-
-                // the current scheme is to spawn a process per event.
-                // the spawned helper function takes arguments
-                // DateTime<Utc>, bool (our only current case for message content), Url
-                // we could add String to pass in custom POST message body
-
-                // passing in the Url is still awkward,
-                // it is included in the fixture_schedule but not the event list, and the process needs it
-
-                let passed_url = match ev.on {
-                    true => fixture_schedule.on.clone(),
-                    false => fixture_schedule.off.clone(),
-                };
-
-                set.spawn(async move { event_process(ev.timestamp, ev.on, passed_url).await });
-            }
+            set.spawn(async move { spawn_fixture_schedules(fixture_schedule).await });
         }
     }
     set.join_all().await;
     println!("!!**^%&@ schedule is completed @&%^**!!");
+}
+
+async fn spawn_fixture_schedules(fix_sched: Schedule) {
+    let mut inner_set: JoinSet<()> = JoinSet::new();
+    for ev in fix_sched.times {
+        // the current scheme is to spawn a process per event.
+        println!("reading Event : {:?}", ev);
+
+        // the spawned helper function takes arguments
+        // DateTime<Utc>, bool (our only current case for message content), Url
+        // we could add String to pass in custom POST message body
+
+        // passing in the Url is still awkward,
+        // it is included in the fixture_schedule but not the event list, and the process needs it
+
+        let passed_address: Url = match ev.on {
+            true => fix_sched.on.clone(),
+            false => fix_sched.off.clone(),
+        };
+
+        inner_set.spawn(async move { event_process(ev.timestamp, ev.on, passed_address).await });
+    }
+    inner_set.join_all().await;
 }
 
 async fn event_process(event_time: DateTime<Utc>, message: bool, destination: Url) -> () {
@@ -97,13 +101,14 @@ async fn event_process(event_time: DateTime<Utc>, message: bool, destination: Ur
         )
         .await;
     } else {
-        panic!("Fatal! event time prior to system time detected.");
+        panic!("Fatal! Event timestamp prior to system time detected.");
     }
 
     let poster = reqwest::Client::new();
     let res = poster
         .post(destination)
         .body(message.to_string())
+        //seems a little wasteful to convert our bool back to string
         .send()
         .await;
 
@@ -112,5 +117,3 @@ async fn event_process(event_time: DateTime<Utc>, message: bool, destination: Ur
         println!("error result in POST")
     }
 }
-
-//seems a little wasteful to convert our bool back to string
