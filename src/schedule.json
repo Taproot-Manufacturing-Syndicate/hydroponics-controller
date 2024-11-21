@@ -1,0 +1,28 @@
+{
+  "system": "taproot",
+  "app": "hydroponics-controller", 
+  "service": "scheduling",
+  "devices": {
+    "lighting": {
+      "main": {
+        "commands": {"on": "http://127.0.0.1:9732",
+          "off": "http://127.0.0.1:9732", "times": [
+            {"timestamp": "2024-11-28T04:55:25Z", "on": true}, {"timestamp": "2024-11-28T04:55:44Z", "on": false}, {"timestamp": "2024-11-28T04:55:45Z", "on": true}, {"timestamp": "2024-11-28T04:55:49Z", "on": false}]
+        },
+        "type": "single light or system on one outlet",
+        "group": "solo",
+        "startingstate": "off" 
+      }
+    },
+    "pumping": {
+      "main": {
+        "commands":{"on": "http://127.0.0.1:9732", "off": "http://127.0.0.1:9732", "times": [
+          {"timestamp" : "2024-11-28T04:55:05Z", "on" : true}, {"timestamp": "2024-11-28T04:55:15Z", "on": false}
+        ]},
+        "type": "single pump or system on one outlet",
+        "group": "solo",
+        "startingstate": "off" 
+      }
+    }
+  }
+}
