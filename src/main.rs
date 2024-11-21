@@ -51,11 +51,11 @@ async fn main() -> () {
         for fixture in cat {
             println!("category : {:?} fixture : {:?}", category, fixture);
 
-            // format strings to make the call to pointer.
+            // format String to make the call to pointer.
             let commands_path = format!("/{}/{}/commands", category, fixture);
             println!("commands_path {:?}", commands_path);
 
-            //now we can access the url and event schedule.
+            // to access the url and event schedule.
             let fixture_schedule: Schedule = serde_json::from_value(
                 devices
                     .pointer(&commands_path)
@@ -86,11 +86,9 @@ async fn main() -> () {
     }
     set.join_all().await;
     println!("!!**^%&@ schedule is completed @&%^**!!");
-    // then main returns () and the program exits.
 }
 
 async fn event_process(event_time: DateTime<Utc>, message: bool, destination: Url) -> () {
-    // TODO this panics when resulting time is negative (out of range)
     if event_time > chrono::Utc::now() {
         sleep(
             (event_time - chrono::Utc::now())
@@ -101,8 +99,6 @@ async fn event_process(event_time: DateTime<Utc>, message: bool, destination: Ur
     } else {
         panic!("Fatal! event time prior to system time detected.");
     }
-
-    println!("event process sleep is over");
 
     let poster = reqwest::Client::new();
     let res = poster
