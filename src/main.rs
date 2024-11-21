@@ -1,6 +1,8 @@
 extern crate serde;
 extern crate tokio;
 
+use core::panic;
+
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::Value;
@@ -89,12 +91,16 @@ async fn main() -> () {
 
 async fn event_process(event_time: DateTime<Utc>, message: bool, destination: Url) -> () {
     // TODO this panics when resulting time is negative (out of range)
-    sleep(
-        (event_time - chrono::Utc::now())
-            .to_std()
-            .expect("to_std to work"),
-    )
-    .await;
+    if event_time > chrono::Utc::now() {
+        sleep(
+            (event_time - chrono::Utc::now())
+                .to_std()
+                .expect("to_std to work"),
+        )
+        .await;
+    } else {
+        panic!("Fatal! event time prior to system time detected.");
+    }
 
     println!("event process sleep is over");
 
