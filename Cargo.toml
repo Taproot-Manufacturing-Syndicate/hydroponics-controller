@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 cron = "0.13.0"
 http = "1.1.0"
+reqwest = "0.12.9"
 tokio = "1.41.1"
