@@ -1,10 +1,12 @@
 use chrono::{NaiveTime, TimeDelta};
 
-use serde_json::Value;
+use serde::Deserialize;
 use tokio::{task::JoinSet, time::sleep, time::Duration};
 use url::Url;
+
 extern crate tokio;
 
+#[derive(Debug, Deserialize)]
 pub struct Device {
     name: String,
     on: Url,
@@ -12,6 +14,7 @@ pub struct Device {
     events: Vec<Event>,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct Event {
     timestamp: NaiveTime,
     on: bool,
@@ -19,20 +22,18 @@ pub struct Event {
 
 #[tokio::main]
 async fn main() -> () {
-    let json_contents: Value = serde_json::from_str(
+    let devices: Vec<Device> = serde_json::from_str(
         &(tokio::fs::read_to_string("the.json")
             .await
             .expect("reading in JSON to work")),
     )
     .expect("JSON Value works after read-in");
-    println!("{:?}", json_contents);
+    println!("{:?}", devices);
 
     // TODO ingest into structs
 
     let mut set: JoinSet<()> = JoinSet::new();
 
-    // TODO just a demo
-    let devices = vec![1, 2];
     for device in devices {
         set.spawn(run_schedule(device));
     }
@@ -51,11 +52,15 @@ async fn main() -> () {
     ()
 }
 
-// helper
-async fn run_schedule(n: usize) {
+async fn run_schedule(d: Device) {
     let demo_duration: Duration = Duration::from_secs(5);
     loop {
-        println!("{:?}", n);
+        // first find the difference bewteen now (in naivetime) and the schedule,
+        // sleep that duration/timedelta
+        println!("{:?}", &d);
+        let resp = reqwest::get(d.on.clone()).await;
+        println!("{resp:#?}");
         sleep(demo_duration).await;
+        // do the thing (get)
     }
 }
