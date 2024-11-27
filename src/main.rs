@@ -1,4 +1,18 @@
+use chrono::NaiveTime;
+use url::Url;
 extern crate tokio;
+
+pub struct Device {
+    name: String,
+    on: Url,
+    off: Url,
+    events: Vec<Event>,
+}
+
+pub struct Event {
+    timestamp: NaiveTime,
+    on: bool,
+}
 
 #[tokio::main]
 async fn main() -> () {
