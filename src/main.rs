@@ -1,4 +1,5 @@
 use chrono::NaiveTime;
+use serde_json::Value;
 use url::Url;
 extern crate tokio;
 
@@ -16,6 +17,14 @@ pub struct Event {
 
 #[tokio::main]
 async fn main() -> () {
+    let json_contents: Value = serde_json::from_str(
+        &(tokio::fs::read_to_string("the.json")
+            .await
+            .expect("reading in JSON to work")),
+    )
+    .expect("JSON Value works after read-in");
+    println!("{:?}", json_contents);
+
     let resp = reqwest::get("http://127.0.0.1:9732").await;
     println!("{resp:#?}");
 
