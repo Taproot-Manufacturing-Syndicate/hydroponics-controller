@@ -21,7 +21,7 @@ pub struct Event {
 }
 
 #[tokio::main]
-async fn main() -> () {
+async fn main() {
     let devices: Vec<Device> = serde_json::from_str(
         &(tokio::fs::read_to_string("the.json")
             .await
