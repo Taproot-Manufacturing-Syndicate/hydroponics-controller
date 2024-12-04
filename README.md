@@ -216,3 +216,71 @@ We need one for the pump and one for the lights.
 ## Grow controller
 
 This is a computer that sequences the main pump and lights.
+
+
+
+
+webcam to casually inspect the system remotely, and maybe later for ML plant analysis
+
+Sigil used this one: <https://www.thingiverse.com/thing:254956>
+
+    $120 for 100 count boxes of all the fasteners, all the bearings,
+    all the tubing, and 5/6 of the steppers+drivers
+
+    https://vod.ebay.com/vod/FetchOrderDetails?/ViewPaymentStatus&purchaseOrderId=12-1226-908354#/
+
+    Vitamins:
+        2x 28BYJ-48 stepper + driver ($4.58 each, $9.15 total)
+        6x 624 bearings, 13x4x5 OD/ID/W ($0.90 each, $5.40 total)
+        6x M4 washers ($0.08 each, $0.45 total)
+        7x M4 nuts (had some on hand)
+
+        2.5mm for head:
+            FIXME: needs button head socket cap screws, not SHCS or low profile SHCP
+            3x M4x20 ($0.16 each, $0.47 total)
+            4x M4x5 ($0.14 each, $0.55 total)
+            4x M4x25 ($0.18 each, $0.70 total)
+        6x4mm Silicone tubing, PV ($6.34/meter)
+        $23.06 total
+
+<https://github.com/Synthetic-Automated-Systems/open_micro_pump>
+
+
+## Measurements
+
+pH (<https://www.hackster.io/chuygen/professional-hydroponics-ph-and-do-monitoring-fc63df>)
+dissolved oxygen?
+
+EC/TDS (for estimation nutrient concentration)
+Nutrient solution temperature (DS 18b20)
+Air temperature (<https://github.com/SebKuzminsky/rp2040-si7021>)
+Air humidity (<https://github.com/SebKuzminsky/rp2040-si7021>)
+Light level
+turbidity
+
+Notify when it's time to add water or control fluids, maybe measure the
+weight of the control fluids with load cells?
+
+
+I don't remember what i used for the substrate.  Little rock-wool
+cubes?  Perlite?
+
+
+# Nutrient solution reservoir
+
+Our growing space is the wire shelving rack in the dining room, or a
+desk in my office.
+
+Our wire shelves can hold a basin that's 27.25 inch by 21.5 inch.
+Inside dimensions should be 22 inch by 21 inch, or a little bigger.
+
+Submerged in the nutrient reservoir is two sensors
+(EC and pH).  Nutrient solution control is provided by three volumetric
+pumps supplying pH Up, pH Down, and nutrient concentrate.
+
+
+# Links
+
+<https://github.com/mayaculpa/hapi>
+
+<https://gitlab.com/lexg03/hydroponic-conditioner>
