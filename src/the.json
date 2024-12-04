@@ -1,0 +1,40 @@
+[
+        {
+            "name": "lights",
+            "on": "http://127.0.0.1:9732",
+            "off": "http://127.0.0.1:9732",
+            "events": [
+                {
+                    "timestamp": "19:36:00",
+                    "on": true
+                },
+                {
+                    "timestamp": "19:36:05",
+                    "on": false
+                },
+                {
+                    "timestamp": "20:46:10",
+                    "on": true
+                },
+                {
+                    "timestamp": "20:46:15",
+                    "on": false
+                }
+            ]
+        },
+        {
+            "name": "pump",
+            "on": "http://127.0.0.1:9732",
+            "off": "http://127.0.0.1:9732",
+            "events": [
+                {
+                    "timestamp": "04:55:05",
+                    "on": true
+                },
+                {
+                    "timestamp": "04:55:15",
+                    "on": false
+                }
+            ]
+        }
+    ]
