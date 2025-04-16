@@ -1,0 +1,81 @@
+[
+    {
+        "name": "pump",
+        "on": "http://tasmota-pump.local/cm?cmnd=Power%20On",
+        "off": "http://tasmota-pump.local/cm?cmnd=Power%20Off",
+        "events": [
+            {
+                "timestamp": "06:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "06:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "08:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "08:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "10:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "10:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "12:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "12:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "14:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "14:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "16:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "16:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "18:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "18:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "20:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "20:01:00",
+                "on": false
+            },
+            {
+                "timestamp": "01:00:00",
+                "on": true
+            },
+            {
+                "timestamp": "01:01:00",
+                "on": false
+            }
+        ]
+    }
+]
