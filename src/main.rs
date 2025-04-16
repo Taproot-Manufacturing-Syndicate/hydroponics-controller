@@ -1,9 +1,19 @@
+use clap::Parser;
 use chrono::{Local, NaiveTime, TimeDelta};
 use serde::Deserialize;
 use tokio::{task::JoinSet, time::sleep};
 use url::Url;
 
 extern crate tokio;
+
+/// Turn pumps and light on and off according to a schedule, to run a
+/// hydroponics setup.
+#[derive(clap::Parser, Debug)]
+#[command(version, about, long_about=None)]
+struct Args {
+    /// The config file name.
+    config_file_name: String,
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Device {
@@ -21,8 +31,10 @@ pub struct Event {
 
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
+
     let devices: Vec<Device> = serde_json::from_str(
-        &(tokio::fs::read_to_string("the.json")
+        &(tokio::fs::read_to_string(args.config_file_name)
             .await
             .expect("reading in JSON to work")),
     )
