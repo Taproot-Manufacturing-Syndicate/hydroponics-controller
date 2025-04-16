@@ -1,0 +1,28 @@
+{
+    "pump": {
+        "tasmota_hostname": "tasmota-pump.local",
+        "floods": [
+            {
+                "start": "07:00:00",
+                "duration": "15m"
+            },
+            {
+                "start": "11:00:00",
+                "duration": "15m"
+            },
+            {
+                "start": "15:00:00",
+                "duration": "15m"
+            },
+            {
+                "start": "19:00:00",
+                "duration": "15m"
+            }
+        ]
+    },
+    "light": {
+        "tasmota_hostname": "hydro-lights.local",
+        "start": "07:00",
+        "end": "19:00"
+    }
+}
