@@ -1,0 +1,25 @@
+{
+    "pump": {
+        "tasmota_hostname": "tasmota-pump.local",
+        "min_power_w": 6.5,
+        "max_power_w": 10.5,
+        "floods": [
+            {
+                "start": "07:00:00",
+                "duration": "15m"
+            },
+            {
+                "start": "11:00:00",
+                "duration": "15m"
+            },
+            {
+                "start": "15:00:00",
+                "duration": "15m"
+            },
+            {
+                "start": "19:00:00",
+                "duration": "15m"
+            }
+        ]
+    }
+}
