@@ -74,7 +74,7 @@ async fn event_loop(d: Device, e: Event) {
         // with NaiveTime for events, any given time will be before AND after now.
         // Negative time occurs each time an event fires and is asked to sleep
         // until the same NaiveTime, and in some initial conditions.
-        if diff.num_nanoseconds().expect(
+        while diff.num_nanoseconds().expect(
             "num_nanoseconds to work [2^63 nano overflow.]",
             // fun fact: the number of nanoseconds in a day is only 8.64 x 10^13
         ) < 0
