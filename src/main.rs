@@ -27,14 +27,14 @@ async fn main() {
             .expect("reading in JSON to work")),
     )
     .expect("JSON resolves to Vec<Device>");
-    println!("devices as Vec<Device> : {:?}", devices);
+    println!("devices as Vec<Device> : {:#?}", devices);
 
     let mut set: JoinSet<()> = JoinSet::new();
 
     for device in devices {
         println!("working with device {:?}", device.name);
         let evs = device.events.clone();
-        println!("events : {:?}", evs);
+        println!("events : {:#?}", evs);
 
         for e in evs {
             println!("about to spawn 'e' on inner_set {:?}", e);
@@ -45,11 +45,19 @@ async fn main() {
     set.join_all().await;
 }
 
+fn timedelta_to_str(timedelta: &TimeDelta) -> String {
+    let total_seconds = timedelta.abs().num_seconds();
+    let s = total_seconds % 60;
+    let total_minutes = total_seconds / 60;
+    let m = total_minutes % 60;
+    let h = timedelta.num_hours();
+    format!("{}:{:02}:{:02}", h, m, s)
+}
+
 async fn event_loop(d: Device, e: Event) {
     loop {
         let now: NaiveTime = Local::now().time();
         let mut diff: TimeDelta = e.timestamp - now;
-        println!("diff : {:?}", diff);
 
         // with NaiveTime for events, any given time will be before AND after now.
         // Negative time occurs each time an event fires and is asked to sleep
@@ -60,21 +68,28 @@ async fn event_loop(d: Device, e: Event) {
         ) < 0
         // then, we must add 24 hours to the wait time.
         {
-            println!("negative time, about to add 24 hours. diff : {:?}", diff);
             diff += TimeDelta::days(1);
         }
 
-        println!("about to sleep. adjusted diff : {:?}", diff);
+        println!(
+            "{:?}:{:?} now is {now}, about to sleep {}",
+            d.name,
+            e,
+            timedelta_to_str(&diff)
+        );
 
-        sleep(diff.to_std().expect("to_std to work")).await;
+        let s = diff.to_std().expect("to_std to work");
+        println!("{:?}:{:?} sleeping s={:#?}", d.name, e, s);
+        sleep(s).await;
+        println!("{:?}:{:?} awoke at {}", d.name, e, Local::now().time());
 
         // now it's time for action!
         if e.on {
             let resp = reqwest::get(d.on.clone()).await;
-            println!("On ! {:#?}", resp);
+            println!("{:?}:{:?} On ! {:#?}", d.name, e, resp);
         } else {
             let resp = reqwest::get(d.off.clone()).await;
-            println!("Off ! {:#?}", resp);
+            println!("{:?}:{:?} Off ! {:#?}", d.name, e, resp);
         }
         // and the loop will go on forever.
     }
