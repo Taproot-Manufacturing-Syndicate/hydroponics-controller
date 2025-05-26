@@ -1,0 +1,27 @@
+# This is a systemd service file.  Symlink it into into
+# `/etc/systemd/system/`.
+#
+# ```
+# $ sudo systemctl daemon-reload
+# $ sudo systemctl enable $SERVICE
+# $ sudo systemctl start $SERVICE # or reboot
+# $ sudo systemctl status $SERVICE
+# $ sudo journalctl -u $SERVICE -f -n 1000
+# ```
+
+[Unit]
+Description=Taproot Hydroponics Controller
+Requires=network.target local-fs.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=60
+User=seb
+
+WorkingDirectory=/home/seb/hydroponics-controller
+ExecStart=/home/seb/hydroponics-controller/target/debug/hydroponics-controller hackspace-hydro.json
+
+[Install]
+WantedBy=multi-user.target
