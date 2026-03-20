@@ -39,6 +39,14 @@ struct Config {
     light: Option<LightConfig>,
 }
 
+fn notify(msg: &str) {
+    println!("{msg}");
+    let _r = std::process::Command::new("/home/seb/bin/text-me")
+        .arg(format!("Subject:\n\n{msg}"))
+        .output()
+        .expect("failed to run command");
+}
+
 // Wait for `start`, turn the tasmota device on, wait for `end`, turn
 // it back off.
 //
@@ -108,6 +116,7 @@ async fn handle_power_on_period(
     };
 
     tasmota_device.power_on().await.unwrap();
+    notify(&format!("{name} on"));
 
     // Monitor power while on.
     // FIXME: shut down if it does something weird?
@@ -126,6 +135,16 @@ async fn handle_power_on_period(
                     Some(f32::min(power, observed_min_power_w.unwrap_or(f32::MAX)));
                 observed_max_power_w =
                     Some(f32::max(power, observed_max_power_w.unwrap_or(f32::MIN)));
+                if power < min_power_w {
+                    notify(&format!(
+                        "{name} power is {power:.1} (< min {min_power_w:.1})"
+                    ));
+                }
+                if power > max_power_w {
+                    notify(&format!(
+                        "{name} power is {power:.1} (> max {max_power_w:.1})"
+                    ));
+                }
                 // println!("{:#?}", energy);
             }
         } else {
@@ -167,9 +186,19 @@ async fn handle_power_on_period(
                 }
             };
             println!("{name} power: min={:.1} W, max={:.1} W", min, max);
+            notify(&format!(
+                "{name} off, was on for {}, consumed {:.6} kWh (min={min}, avg={:.1} W, max={max})",
+                timedelta_to_str(&on_time),
+                energy,
+                avg_power,
+            ));
         }
         (_, _) => {
             println!("failed to read energy from {name} tasmota");
+            notify(&format!(
+                "{name} off, was on for {} (error reading energy)",
+                timedelta_to_str(&on_time)
+            ));
         }
     }
 }
