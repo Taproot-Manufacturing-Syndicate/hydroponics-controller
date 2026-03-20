@@ -35,6 +35,14 @@ struct Config {
     light: Option<LightConfig>,
 }
 
+fn notify(msg: &str) {
+    println!("{msg}");
+    let _r = std::process::Command::new("/home/seb/bin/text-me")
+        .arg(format!("Subject:\n\n{msg}"))
+        .output()
+        .expect("failed to run command");
+}
+
 // Wait for `start`, turn the tasmota device on, wait for `end`, turn
 // it back off.
 //
@@ -100,6 +108,7 @@ async fn handle_power_on_period(
     };
 
     tasmota_device.power_on().await.unwrap();
+    notify(&format!("{name} on"));
 
     // TODO: Instead of just sleeping, monitor power and shut
     // down if it does something weird.
@@ -111,6 +120,10 @@ async fn handle_power_on_period(
     tasmota_device.power_off().await.unwrap();
 
     let on_time = end - start;
+    notify(&format!(
+        "{name} off, was on for {}",
+        timedelta_to_str(&on_time)
+    ));
 
     let final_energy = match tasmota_device.energy().await {
         Ok(energy) => energy.total_energy(),
@@ -127,6 +140,9 @@ async fn handle_power_on_period(
             let avg_power = 1000.0 * energy / on_hours;
             println!("{name} consumed {:.3} kWh during this on-period", energy);
             println!("{name} averaged {:.3} W during this on-period", avg_power);
+            notify(&format!(
+                "{name} consumed {energy:.3} kWh (avg {avg_power:.3} W)"
+            ));
         }
         (_, _) => {
             println!("failed to read energy from {name} tasmota");
