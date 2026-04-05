@@ -1,40 +1,28 @@
-[
-    {
-        "name": "lights",
-        "on": "http://127.0.0.1:9732",
-        "off": "http://127.0.0.1:9732",
-        "events": [
+{
+    "pump": {
+        "tasmota_hostname": "tasmota-pump.local",
+        "floods": [
             {
-                "timestamp": "19:36:00",
-                "on": true
+                "start": "07:00:00",
+                "duration": "15m"
             },
             {
-                "timestamp": "19:36:05",
-                "on": false
+                "start": "11:00:00",
+                "duration": "15m"
             },
             {
-                "timestamp": "20:46:10",
-                "on": true
+                "start": "15:00:00",
+                "duration": "15m"
             },
             {
-                "timestamp": "20:46:15",
-                "on": false
+                "start": "19:00:00",
+                "duration": "15m"
             }
         ]
     },
-    {
-        "name": "pump",
-        "on": "http://127.0.0.1:9732",
-        "off": "http://127.0.0.1:9732",
-        "events": [
-            {
-                "timestamp": "04:55:05",
-                "on": true
-            },
-            {
-                "timestamp": "04:55:15",
-                "on": false
-            }
-        ]
+    "light": {
+        "tasmota_hostname": "tasmota-light.local",
+        "start": "07:00",
+        "end": "19:00"
     }
-]
+}
