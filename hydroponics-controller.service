@@ -21,7 +21,7 @@ RestartSec=60
 User=seb
 
 WorkingDirectory=/home/seb/hydroponics-controller
-ExecStart=/home/seb/hydroponics-controller/target/debug/hydroponics-controller hackspace-hydro.json
+ExecStart=/home/seb/hydroponics-controller/target/debug/hydroponics-controller hackspace-spiderplant.json
 
 [Install]
 WantedBy=multi-user.target
