@@ -23,108 +23,134 @@ struct PumpConfig {
 }
 
 #[derive(Debug, serde::Deserialize, Clone)]
+struct LightConfig {
+    tasmota_hostname: String,
+    start: chrono::NaiveTime,
+    end: chrono::NaiveTime,
+}
+
+#[derive(Debug, serde::Deserialize, Clone)]
 struct Config {
-    pump: PumpConfig,
+    pump: Option<PumpConfig>,
+    light: Option<LightConfig>,
 }
 
-async fn sleep_until(flood: &FloodConfig) {
-    let mut time_until_start = flood.start - chrono::Local::now().time();
-    println!(
-        "waiting for the flood, {}",
-        timedelta_to_str(&time_until_start)
-    );
-
-    while time_until_start < chrono::TimeDelta::zero() {
-        time_until_start += chrono::TimeDelta::days(1);
-        println!(
-            "adjusted sleep duration is {}",
-            timedelta_to_str(&time_until_start)
-        );
-    }
-
-    let sleep_duration = time_until_start.to_std().unwrap();
-    println!("sleep duration is {sleep_duration:#?}");
-    tokio::time::sleep(sleep_duration).await;
-}
-
-async fn handle_flood(
-    flood: &FloodConfig,
-    pump_tasmota_device: &tasmor_lib::Device<tasmor_lib::protocol::HttpClient>,
+// Wait for `start`, turn the tasmota device on, wait for `end`, turn
+// it back off.
+//
+// Reports how much energy it used while on.
+//
+// Handles getting called at any time, not just before `start`.
+//
+// If we're past `end`, the behavior depends on `wait_for_day_rollover`:
+//     - If it's true, wait for the `start` tomorrow.
+//     - If it's false, the on-period is handled and it returns immediately.
+async fn handle_power_on_period(
+    name: &str,
+    tasmota_device: &tasmor_lib::Device<tasmor_lib::protocol::HttpClient>,
+    mut start: chrono::NaiveTime,
+    end: chrono::NaiveTime,
     wait_for_day_rollover: bool,
 ) {
     let now = chrono::Local::now().time();
-    println!("now: {now:#?}");
+    println!("handling {name} power-on period:");
+    println!("    now: {now:#?}");
+    println!("    start: {start:#?}");
+    println!("    end: {end:#?}");
+    println!("    wait_for_day_rollover: {wait_for_day_rollover:#?}");
 
-    println!("considering flood {:#?}", flood);
-
-    if now < flood.start {
-        // Sleep until this flood starts.
-        sleep_until(flood).await;
-    } else if now < flood.start + flood.duration {
-        println!("we're in the middle of this flood, better start right away");
+    let mut time_until_start = start - now;
+    let time_until_start = if time_until_start > chrono::TimeDelta::zero() {
+        // This is the happy path: `start` is in the future, just wait
+        // until then.
+        time_until_start
     } else {
-        // This flood is in the past, or tomorrow.
-        if wait_for_day_rollover {
-            sleep_until(flood).await;
+        println!("oops, we missed the start!");
+        if now < end {
+            println!("we're in the middle of the on-period! start right away!");
+            start = now;
+            chrono::TimeDelta::zero()
         } else {
-            println!("we missed this flood");
-            return;
+            println!("we missed the end too");
+            if wait_for_day_rollover {
+                println!("waiting for the start tomorrow");
+                while time_until_start < chrono::TimeDelta::zero() {
+                    time_until_start += chrono::TimeDelta::days(1);
+                }
+                time_until_start
+            } else {
+                println!("this period's done");
+                return;
+            }
         }
-    }
+    };
+    println!("start is in {}", timedelta_to_str(&time_until_start));
+    tokio::time::sleep(time_until_start.to_std().unwrap()).await;
 
-    println!("starting flood");
-    let start_time = chrono::Local::now().time();
+    // It's time to start!
 
-    let start_energy = match pump_tasmota_device.energy().await {
+    // FIXME: This takes a couple of seconds and we actually miss the
+    // `start` instant.
+    let start_energy = match tasmota_device.energy().await {
         Ok(energy) => energy.total_energy(),
         Err(e) => {
-            println!("failed to read energy from pump tasmota device: {}", e);
+            println!("failed to read energy from {name} tasmota device: {}", e);
             None
         }
     };
-    // println!("start energy: {start_energy:#?}");
 
-    pump_tasmota_device.power_on().await.unwrap();
+    tasmota_device.power_on().await.unwrap();
 
-    let flood_end = flood.start + flood.duration;
-    let time_until_end = flood_end - chrono::Local::now().time();
-    println!(
-        "sleeping until {} ({})",
-        flood_end,
-        timedelta_to_str(&time_until_end)
-    );
+    // TODO: Instead of just sleeping, monitor power and shut
+    // down if it does something weird.
+    let sleep_diration = (end - chrono::Local::now().time()).to_std().unwrap();
+    println!("sleep duration is {sleep_diration:#?}");
+    tokio::time::sleep(sleep_diration).await;
 
-    // TODO: Instead of just sleeping, monitor pump power and
-    // shut down if it does something weird.
-    tokio::time::sleep(time_until_end.to_std().unwrap()).await;
+    println!("{name} off");
+    tasmota_device.power_off().await.unwrap();
 
-    println!("ending flood");
-    pump_tasmota_device.power_off().await.unwrap();
+    let on_time = end - start;
 
-    let end_time = chrono::Local::now().time();
-
-    let final_energy = match pump_tasmota_device.energy().await {
+    let final_energy = match tasmota_device.energy().await {
         Ok(energy) => energy.total_energy(),
         Err(e) => {
-            println!("failed to read energy from pump tasmota device: {}", e);
+            println!("failed to read energy from {name} tasmota device: {}", e);
             None
         }
     };
-    // println!("final energy: {final_energy:#?}");
 
-    let flood_time = end_time - start_time;
-    let flood_time_hours = flood_time.num_milliseconds() as f32 / (1_000.0 * 60.0 * 60.0);
-
+    let on_hours = on_time.num_milliseconds() as f32 / (1_000.0 * 60.0 * 60.0);
     match (start_energy, final_energy) {
         (Some(start_energy), Some(final_energy)) => {
             let energy = final_energy - start_energy;
-            let avg_power = 1000.0 * energy / flood_time_hours;
-            println!("pump consumed {:.3} kWh during this flood", energy);
-            println!("pump averaged {:.3} W during this flood", avg_power);
+            let avg_power = 1000.0 * energy / on_hours;
+            println!("{name} consumed {:.3} kWh during this on-period", energy);
+            println!("{name} averaged {:.3} W during this on-period", avg_power);
         }
         (_, _) => {
-            println!("failed to read energy from tasmota");
+            println!("failed to read energy from {name} tasmota");
         }
+    }
+}
+
+async fn run_light(light_config: LightConfig) {
+    // unwrap as panic
+    let (tasmota_device, _initial_state) = tasmor_lib::Device::http(&light_config.tasmota_hostname)
+        .build()
+        .await
+        .unwrap();
+
+    loop {
+        println!("light: top of loop");
+        handle_power_on_period(
+            "light",
+            &tasmota_device,
+            light_config.start,
+            light_config.end,
+            true,
+        )
+        .await;
     }
 }
 
@@ -147,12 +173,22 @@ async fn run_pump(pump_config: PumpConfig) {
     let mut wait_for_day_rollover = false;
 
     loop {
-        println!("top of loop");
+        println!("pump: top of loop");
         // We assume that the flood configs are sorted by time, so
         // earlier comes before later.
         for flood in &pump_config.floods {
-            handle_flood(flood, &tasmota_device, wait_for_day_rollover).await;
+            handle_power_on_period(
+                "pump",
+                &tasmota_device,
+                flood.start,
+                flood.start + flood.duration,
+                wait_for_day_rollover,
+            )
+            .await;
         }
+
+        // We're done with the *last* flood of the day, wait for the
+        // start of the first one tomorrow.
         wait_for_day_rollover = true;
     }
 }
@@ -180,7 +216,13 @@ async fn main() {
 
     let mut set = tokio::task::JoinSet::<()>::new();
 
-    set.spawn(run_pump(config.pump));
+    if let Some(pump_config) = config.pump {
+        set.spawn(run_pump(pump_config));
+    }
+
+    if let Some(light_config) = config.light {
+        set.spawn(run_light(light_config));
+    }
 
     set.join_all().await;
 }
