@@ -1,0 +1,7 @@
+when a pump runs dry, power consumption drops
+
+When the pump runs submerged it draws about 7-8W.
+
+When its runs dry it draws about 5W.
+
+Detect this in software and take corrective action.
