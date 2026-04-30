@@ -103,9 +103,9 @@ async fn handle_power_on_period(
 
     // TODO: Instead of just sleeping, monitor power and shut
     // down if it does something weird.
-    let sleep_diration = (end - chrono::Local::now().time()).to_std().unwrap();
-    println!("sleep duration is {sleep_diration:#?}");
-    tokio::time::sleep(sleep_diration).await;
+    let sleep_duration = (end - chrono::Local::now().time()).to_std().unwrap();
+    println!("sleep duration is {sleep_duration:#?}");
+    tokio::time::sleep(sleep_duration).await;
 
     println!("{name} off");
     tasmota_device.power_off().await.unwrap();
