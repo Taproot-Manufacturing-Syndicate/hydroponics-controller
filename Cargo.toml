@@ -9,5 +9,5 @@ clap = { version = "4.5.36", features = ["derive"] }
 duration-str = "0.21.0"
 serde = {version ="1.0.215", features = ["derive"]}
 serde_json = "1.0.133"
-tasmor_lib = "0.5.0"
+tasmor_lib = "0.6.0"
 tokio = {version = "1.41.1", features = ["full"]}
