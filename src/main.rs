@@ -19,12 +19,16 @@ struct FloodConfig {
 #[derive(Debug, serde::Deserialize, Clone)]
 struct PumpConfig {
     tasmota_hostname: String,
+    min_power_w: f32,
+    max_power_w: f32,
     floods: Vec<FloodConfig>,
 }
 
 #[derive(Debug, serde::Deserialize, Clone)]
 struct LightConfig {
     tasmota_hostname: String,
+    min_power_w: f32,
+    max_power_w: f32,
     start: chrono::NaiveTime,
     end: chrono::NaiveTime,
 }
@@ -48,6 +52,8 @@ struct Config {
 async fn handle_power_on_period(
     name: &str,
     tasmota_device: &tasmor_lib::Device<tasmor_lib::protocol::HttpClient>,
+    min_power_w: f32,
+    max_power_w: f32,
     mut start: chrono::NaiveTime,
     end: chrono::NaiveTime,
     wait_for_day_rollover: bool,
@@ -57,6 +63,8 @@ async fn handle_power_on_period(
     println!("    now: {now:#?}");
     println!("    start: {start:#?}");
     println!("    end: {end:#?}");
+    println!("    min power (W): {min_power_w:#?}");
+    println!("    max power (W): {max_power_w:#?}");
     println!("    wait_for_day_rollover: {wait_for_day_rollover:#?}");
 
     let mut time_until_start = start - now;
@@ -101,11 +109,28 @@ async fn handle_power_on_period(
 
     tasmota_device.power_on().await.unwrap();
 
-    // TODO: Instead of just sleeping, monitor power and shut
-    // down if it does something weird.
-    let sleep_duration = (end - chrono::Local::now().time()).to_std().unwrap();
-    println!("sleep duration is {sleep_duration:#?}");
-    tokio::time::sleep(sleep_duration).await;
+    // Monitor power while on.
+    // FIXME: shut down if it does something weird?
+    // FIXME: look at the change in total_energy() instead of instantaneous energy
+    let ten_seconds = std::time::Duration::from_secs(10);
+    let mut observed_min_power_w: Option<f32> = None;
+    let mut observed_max_power_w: Option<f32> = None;
+    loop {
+        let sleep_duration = (end - chrono::Local::now().time()).to_std().unwrap();
+        if sleep_duration > 2 * ten_seconds {
+            tokio::time::sleep(ten_seconds).await;
+            if let Ok(energy) = tasmota_device.energy().await && let Some(power) = energy.power() {
+                observed_min_power_w =
+                    Some(f32::min(power, observed_min_power_w.unwrap_or(f32::MAX)));
+                observed_max_power_w =
+                    Some(f32::max(power, observed_max_power_w.unwrap_or(f32::MIN)));
+                // println!("{:#?}", energy);
+            }
+        } else {
+            tokio::time::sleep(sleep_duration).await;
+            break;
+        }
+    }
 
     println!("{name} off");
     tasmota_device.power_off().await.unwrap();
@@ -127,6 +152,18 @@ async fn handle_power_on_period(
             let avg_power = 1000.0 * energy / on_hours;
             println!("{name} consumed {:.6} kWh during this on-period", energy);
             println!("{name} averaged {:.1} W during this on-period", avg_power);
+            let min = {
+                match observed_min_power_w {
+                    Some(w) => format!("{w:.1} W"),
+                    None => "None".to_string(),
+                }
+            };
+            let max = {
+                match observed_max_power_w {
+                    Some(w) => format!("{w:.1} W"),
+                    None => "None".to_string(),
+                }
+            };
         }
         (_, _) => {
             println!("failed to read energy from {name} tasmota");
@@ -146,6 +183,8 @@ async fn run_light(light_config: LightConfig) {
         handle_power_on_period(
             "light",
             &tasmota_device,
+            light_config.min_power_w,
+            light_config.max_power_w,
             light_config.start,
             light_config.end,
             true,
@@ -180,6 +219,8 @@ async fn run_pump(pump_config: PumpConfig) {
             handle_power_on_period(
                 "pump",
                 &tasmota_device,
+                pump_config.min_power_w,
+                pump_config.max_power_w,
                 flood.start,
                 flood.start + flood.duration,
                 wait_for_day_rollover,
