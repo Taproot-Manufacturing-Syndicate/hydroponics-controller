@@ -119,7 +119,9 @@ async fn handle_power_on_period(
         let sleep_duration = (end - chrono::Local::now().time()).to_std().unwrap();
         if sleep_duration > 2 * ten_seconds {
             tokio::time::sleep(ten_seconds).await;
-            if let Ok(energy) = tasmota_device.energy().await && let Some(power) = energy.power() {
+            if let Ok(energy) = tasmota_device.energy().await
+                && let Some(power) = energy.power()
+            {
                 observed_min_power_w =
                     Some(f32::min(power, observed_min_power_w.unwrap_or(f32::MAX)));
                 observed_max_power_w =
