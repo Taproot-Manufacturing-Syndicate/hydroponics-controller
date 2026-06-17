@@ -125,8 +125,8 @@ async fn handle_power_on_period(
         (Some(start_energy), Some(final_energy)) => {
             let energy = final_energy - start_energy;
             let avg_power = 1000.0 * energy / on_hours;
-            println!("{name} consumed {:.3} kWh during this on-period", energy);
-            println!("{name} averaged {:.3} W during this on-period", avg_power);
+            println!("{name} consumed {:.6} kWh during this on-period", energy);
+            println!("{name} averaged {:.1} W during this on-period", avg_power);
         }
         (_, _) => {
             println!("failed to read energy from {name} tasmota");
