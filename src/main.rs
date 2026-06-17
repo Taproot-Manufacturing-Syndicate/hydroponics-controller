@@ -164,6 +164,7 @@ async fn handle_power_on_period(
                     None => "None".to_string(),
                 }
             };
+            println!("{name} power: min={:.1} W, max={:.1} W", min, max);
         }
         (_, _) => {
             println!("failed to read energy from {name} tasmota");
